@@ -1,0 +1,19 @@
+{
+    "customDataSourceType": "example/star-wars-movie",
+    "name": "Star wars movie",
+    "category": "Content",
+    "icon": "source",
+    "schema": [
+        {
+            "name": "Settings",
+            "fields": [
+                {
+                    "label": "Movie ID",
+                    "field": "movieId",
+                    "type": "string",
+                    "translatable": false
+                }
+            ]
+        }
+    ]
+}
