@@ -24,7 +24,11 @@ import { BaseApi } from './BaseApi';
 import { ShippingMethod } from '../../types/cart/ShippingMethod';
 import { Locale } from './Locale';
 import { Payment } from '../../types/cart/Payment';
-import { PaymentDraft } from '@commercetools/platform-sdk/dist/declarations/src/generated/models/payment';
+import {
+  PaymentDraft,
+  PaymentUpdate,
+  PaymentUpdateAction,
+} from '@commercetools/platform-sdk/dist/declarations/src/generated/models/payment';
 
 export class CartApi extends BaseApi {
   protected buildCartWithAvailableShippingMethods: (
@@ -540,6 +544,63 @@ export class CartApi extends BaseApi {
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`addPayment failed. ${error}`);
+    }
+  };
+
+  updatePayment: (cart: Cart, payment: Payment) => Promise<Payment> = async (cart: Cart, payment: Payment) => {
+    try {
+      const locale = await this.getCommercetoolsLocal();
+      const originalPayment = cart.payments.find((cartPayment) => cartPayment.id === payment.id);
+
+      if (originalPayment === undefined) {
+        throw new Error(`Payment ${payment.id} not found in cart ${cart.cartId}`);
+      }
+
+      const paymentUpdateActions: PaymentUpdateAction[] = [];
+
+      if (payment.paymentStatus) {
+        paymentUpdateActions.push({
+          action: 'setStatusInterfaceCode',
+          interfaceCode: payment.paymentStatus,
+        });
+      }
+
+      if (payment.debug) {
+        paymentUpdateActions.push({
+          action: 'setStatusInterfaceText',
+          interfaceText: payment.debug,
+        });
+      }
+
+      if (payment.paymentId) {
+        paymentUpdateActions.push({
+          action: 'setInterfaceId',
+          interfaceId: payment.paymentId,
+        });
+      }
+
+      if (paymentUpdateActions.length === 0) {
+        // There is nothing to be updated
+        return payment;
+      }
+
+      const response = await this.getApiForProject()
+        .payments()
+        .withKey({
+          key: originalPayment.id,
+        })
+        .post({
+          body: {
+            version: originalPayment.version,
+            actions: paymentUpdateActions,
+          },
+        })
+        .execute();
+
+      return CartMapper.commercetoolsPaymentToPayment(response.body, locale);
+    } catch (error) {
+      //TODO: better error, get status code etc...
+      throw new Error(`updatePayment failed. ${error}`);
     }
   };
 }

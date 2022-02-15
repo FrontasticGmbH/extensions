@@ -4,6 +4,7 @@ import {
   LineItem as CommercetoolsLineItem,
   BaseAddress as CommercetoolsAddress,
   Order as CommercetoolsOrder,
+  Payment as CommercetoolsPayment,
   PaymentInfo as CommercetoolsPaymentInfo,
   ShippingInfo as CommercetoolsShippingInfo,
   ShippingMethod as CommercetoolsShippingMethod,
@@ -36,7 +37,6 @@ export class CartMapper {
       billingAddress: CartMapper.commercetoolsAddressToAddress(commercetoolsCart.billingAddress),
       shippingInfo: CartMapper.commercetoolsShippingInfoToShippingInfo(commercetoolsCart.shippingInfo, locale),
       payments: CartMapper.commercetoolsPaymentInfoToPayments(commercetoolsCart.paymentInfo, locale),
-      // payments:
       // discountCodes:
       // taxed:
     };
@@ -218,22 +218,30 @@ export class CartMapper {
     const payments: Payment[] = [];
 
     commercetoolsPaymentInfo?.payments?.forEach((commercetoolsPayment) => {
-      const payment: Payment = {
-        id: commercetoolsPayment?.obj?.key ?? null,
-        paymentId: commercetoolsPayment?.obj?.interfaceId ?? null,
-        paymentProvider: commercetoolsPayment?.obj?.paymentMethodInfo.paymentInterface ?? null,
-        paymentMethod: commercetoolsPayment?.obj?.paymentMethodInfo.method ?? null,
-        amountPlanned: {
-          centAmount: commercetoolsPayment?.obj?.amountPlanned.centAmount ?? null,
-          currencyCode: commercetoolsPayment?.obj?.amountPlanned.currencyCode ?? null,
-        },
-        debug: JSON.stringify(commercetoolsPayment),
-        paymentStatus: commercetoolsPayment?.obj?.paymentStatus.interfaceCode ?? null,
-        version: commercetoolsPayment?.obj?.version ?? 0,
-      };
-      payments.push(payment);
+      if (commercetoolsPayment.obj) {
+        payments.push(CartMapper.commercetoolsPaymentToPayment(commercetoolsPayment.obj, locale));
+      }
     });
 
     return payments;
+  };
+
+  static commercetoolsPaymentToPayment: (commercetoolsPayment: CommercetoolsPayment, locale: Locale) => Payment = (
+    commercetoolsPayment: CommercetoolsPayment,
+    locale: Locale,
+  ) => {
+    return {
+      id: commercetoolsPayment.key ?? null,
+      paymentId: commercetoolsPayment.interfaceId ?? null,
+      paymentProvider: commercetoolsPayment.paymentMethodInfo.paymentInterface ?? null,
+      paymentMethod: commercetoolsPayment.paymentMethodInfo.method ?? null,
+      amountPlanned: {
+        centAmount: commercetoolsPayment.amountPlanned.centAmount ?? null,
+        currencyCode: commercetoolsPayment.amountPlanned.currencyCode ?? null,
+      },
+      debug: JSON.stringify(commercetoolsPayment),
+      paymentStatus: commercetoolsPayment.paymentStatus.interfaceCode ?? null,
+      version: commercetoolsPayment.version ?? 0,
+    };
   };
 }

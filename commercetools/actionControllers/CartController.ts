@@ -248,24 +248,51 @@ export const addPaymentByInvoice: ActionHook = async (request: Request, actionCo
   const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
   let cart = await CartFetcher.fetchCart(request, actionContext);
 
-  const paymentRequest: Payment = JSON.parse(request.body);
+  const body: {
+    payment?: Payment;
+  } = JSON.parse(request.body);
 
-  if (paymentRequest.amountPlanned === undefined) {
-    paymentRequest.amountPlanned = {};
+  const payment: Payment = {
+    ...body.payment,
+    paymentProvider: 'frontastic',
+    paymentMethod: 'invoice',
+    paymentStatus: PaymentStatuses.PENDING,
+  };
+
+  if (payment.amountPlanned === undefined) {
+    payment.amountPlanned = {};
   }
 
-  paymentRequest.amountPlanned.centAmount = paymentRequest.amountPlanned.centAmount ?? cart.sum.centAmount ?? undefined;
-  paymentRequest.amountPlanned.currencyCode =
-    paymentRequest.amountPlanned.currencyCode ?? cart.sum.currencyCode ?? undefined;
-  paymentRequest.paymentProvider = 'frontastic';
-  paymentRequest.paymentMethod = 'invoice';
-  paymentRequest.paymentStatus = PaymentStatuses.PENDING;
+  payment.amountPlanned.centAmount = payment.amountPlanned.centAmount ?? cart.sum.centAmount ?? undefined;
+  payment.amountPlanned.currencyCode = payment.amountPlanned.currencyCode ?? cart.sum.currencyCode ?? undefined;
 
-  cart = await cartApi.addPayment(cart, paymentRequest);
+  cart = await cartApi.addPayment(cart, payment);
 
   const response: Response = {
     statusCode: 200,
     body: JSON.stringify(cart),
+    sessionData: {
+      ...request.sessionData,
+      cartId: cart.cartId,
+    },
+  };
+
+  return response;
+};
+
+export const updatePayment: ActionHook = async (request: Request, actionContext: ActionContext) => {
+  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  const cart = await CartFetcher.fetchCart(request, actionContext);
+
+  const body: {
+    payment?: Payment;
+  } = JSON.parse(request.body);
+
+  const payment = await cartApi.updatePayment(cart, body.payment);
+
+  const response: Response = {
+    statusCode: 200,
+    body: JSON.stringify(payment),
     sessionData: {
       ...request.sessionData,
       cartId: cart.cartId,
