@@ -6,6 +6,7 @@ import { LineItem } from '../../../types/cart/LineItem';
 import { Address } from '../../../types/account/Address';
 import { CartFetcher } from '../../utils/CartFetcher';
 import { ShippingMethod } from '../../../types/cart/ShippingMethod';
+import { Payment, PaymentStatuses } from '../../../../../saas/project-libraries/types/cart/Payment';
 
 type ActionHook = (request: Request, actionContext: ActionContext) => Promise<Response>;
 
@@ -230,6 +231,37 @@ export const setShippingMethod: ActionHook = async (request: Request, actionCont
   };
 
   cart = await cartApi.setShippingMethod(cart, shippingMethod);
+
+  const response: Response = {
+    statusCode: 200,
+    body: JSON.stringify(cart),
+    sessionData: {
+      ...request.sessionData,
+      cartId: cart.cartId,
+    },
+  };
+
+  return response;
+};
+
+export const addPaymentByInvoice: ActionHook = async (request: Request, actionContext: ActionContext) => {
+  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  let cart = await CartFetcher.fetchCart(request, actionContext);
+
+  const paymentRequest: Payment = JSON.parse(request.body);
+
+  if (paymentRequest.amountPlanned === undefined) {
+    paymentRequest.amountPlanned = {};
+  }
+
+  paymentRequest.amountPlanned.centAmount = paymentRequest.amountPlanned.centAmount ?? cart.sum.centAmount ?? undefined;
+  paymentRequest.amountPlanned.currencyCode =
+    paymentRequest.amountPlanned.currencyCode ?? cart.sum.currencyCode ?? undefined;
+  paymentRequest.paymentProvider = 'frontastic';
+  paymentRequest.paymentMethod = 'invoice';
+  paymentRequest.paymentStatus = PaymentStatuses.PENDING;
+
+  cart = await cartApi.addPayment(cart, paymentRequest);
 
   const response: Response = {
     statusCode: 200,

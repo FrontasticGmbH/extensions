@@ -1,5 +1,6 @@
 import { Cart } from '../../types/cart/Cart';
 import {
+  CartAddPaymentAction,
   CartDraft,
   CartSetBillingAddressAction,
   CartSetShippingAddressAction,
@@ -22,6 +23,8 @@ import { Guid } from '../utils/Guid';
 import { BaseApi } from './BaseApi';
 import { ShippingMethod } from '../../types/cart/ShippingMethod';
 import { Locale } from './Locale';
+import { Payment } from '../../types/cart/Payment';
+import { PaymentDraft } from '@commercetools/platform-sdk/dist/declarations/src/generated/models/payment';
 
 export class CartApi extends BaseApi {
   protected buildCartWithAvailableShippingMethods: (
@@ -471,6 +474,72 @@ export class CartApi extends BaseApi {
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`getAvailableShippingMethods failed. ${error}`);
+    }
+  };
+
+  addPayment: (cart: Cart, payment: Payment) => Promise<Cart> = async (cart: Cart, payment: Payment) => {
+    try {
+      const locale = await this.getCommercetoolsLocal();
+
+      // TODO: create and use custom a payment field to include details for the payment integration
+
+      const paymentDraft: PaymentDraft = {
+        key: payment.id,
+        amountPlanned: {
+          centAmount: payment.amountPlanned.centAmount,
+          currencyCode: payment.amountPlanned.currencyCode,
+        },
+        interfaceId: payment.paymentId,
+        paymentMethodInfo: {
+          paymentInterface: payment.paymentProvider,
+          method: payment.paymentMethod,
+        },
+        paymentStatus: {
+          interfaceCode: payment.paymentStatus,
+          interfaceText: payment.debug,
+        },
+      };
+
+      const paymentResponse = await this.getApiForProject()
+        .payments()
+        .post({
+          body: paymentDraft,
+        })
+        .execute();
+
+      const cartUpdate: CartUpdate = {
+        version: +cart.cartVersion,
+        actions: [
+          {
+            action: 'addPayment',
+            payment: {
+              typeId: 'payment',
+              id: paymentResponse.body.id,
+            },
+          } as CartAddPaymentAction,
+        ],
+      };
+
+      const response = await this.getApiForProject()
+        .carts()
+        .withId({
+          ID: cart.cartId,
+        })
+        .post({
+          queryArgs: {
+            expand: [
+              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
+              'discountCodes[*].discountCode',
+              'paymentInfo.payments[*]',
+            ],
+          },
+          body: cartUpdate,
+        })
+        .execute();
+      return this.buildCartWithAvailableShippingMethods(response.body, locale);
+    } catch (error) {
+      //TODO: better error, get status code etc...
+      throw new Error(`addPayment failed. ${error}`);
     }
   };
 }

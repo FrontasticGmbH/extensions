@@ -4,6 +4,7 @@ import {
   LineItem as CommercetoolsLineItem,
   BaseAddress as CommercetoolsAddress,
   Order as CommercetoolsOrder,
+  PaymentInfo as CommercetoolsPaymentInfo,
   ShippingInfo as CommercetoolsShippingInfo,
   ShippingMethod as CommercetoolsShippingMethod,
   ZoneRate as CommercetoolsZoneRate,
@@ -18,6 +19,7 @@ import { ShippingLocation } from '../../../types/cart/ShippingLocation';
 import { ProductRouter } from '../../utils/ProductRouter';
 import { ProductMapper } from './ProductMapper';
 import { ShippingInfo } from '../../../types/cart/ShippingInfo';
+import { Payment } from '../../../types/cart/Payment';
 
 export class CartMapper {
   static commercetoolsCartToCart: (commercetoolsCart: commercetoolsCart, locale: Locale) => Cart = (
@@ -33,6 +35,7 @@ export class CartMapper {
       shippingAddress: CartMapper.commercetoolsAddressToAddress(commercetoolsCart.shippingAddress),
       billingAddress: CartMapper.commercetoolsAddressToAddress(commercetoolsCart.billingAddress),
       shippingInfo: CartMapper.commercetoolsShippingInfoToShippingInfo(commercetoolsCart.shippingInfo, locale),
+      payments: CartMapper.commercetoolsPaymentInfoToPayments(commercetoolsCart.paymentInfo, locale),
       // payments:
       // discountCodes:
       // taxed:
@@ -206,5 +209,31 @@ export class CartMapper {
     });
 
     return shippingRates;
+  };
+
+  static commercetoolsPaymentInfoToPayments: (
+    commercetoolsPaymentInfo: CommercetoolsPaymentInfo | undefined,
+    locale: Locale,
+  ) => Payment[] = (commercetoolsPaymentInfo: CommercetoolsPaymentInfo | undefined, locale: Locale) => {
+    const payments: Payment[] = [];
+
+    commercetoolsPaymentInfo?.payments?.forEach((commercetoolsPayment) => {
+      const payment: Payment = {
+        id: commercetoolsPayment?.obj?.key ?? null,
+        paymentId: commercetoolsPayment?.obj?.interfaceId ?? null,
+        paymentProvider: commercetoolsPayment?.obj?.paymentMethodInfo.paymentInterface ?? null,
+        paymentMethod: commercetoolsPayment?.obj?.paymentMethodInfo.method ?? null,
+        amountPlanned: {
+          centAmount: commercetoolsPayment?.obj?.amountPlanned.centAmount ?? null,
+          currencyCode: commercetoolsPayment?.obj?.amountPlanned.currencyCode ?? null,
+        },
+        debug: JSON.stringify(commercetoolsPayment),
+        paymentStatus: commercetoolsPayment?.obj?.paymentStatus.interfaceCode ?? null,
+        version: commercetoolsPayment?.obj?.version ?? 0,
+      };
+      payments.push(payment);
+    });
+
+    return payments;
   };
 }
