@@ -3,6 +3,7 @@ import { ProductMapper } from './mappers/ProductMapper';
 import { ProductQuery } from '../../types/query/ProductQuery';
 import { Product } from '../../types/product/Product';
 import { BaseApi } from './BaseApi';
+import { FilterField, FilterFieldTypes } from '../../types/product/FilterField';
 
 // TODO: get projectKey form config
 
@@ -68,6 +69,38 @@ export class ProductApi extends BaseApi {
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`getProduct failed. ${error}`);
+    }
+  };
+
+  getSearchableAttributes: () => Promise<FilterField[]> = async () => {
+    try {
+      const locale = await this.getCommercetoolsLocal();
+
+      const response = await this.getApiForProject().productTypes().get().execute();
+
+      const filterFields = ProductMapper.commercetoolsProductTypesToFilterFields(response.body.results, locale);
+
+      // Manually add Price filter field since is not included as attributes in CT
+      filterFields.push({
+        field: 'variants.price',
+        type: FilterFieldTypes.NUMBER,
+      });
+
+      filterFields.push({
+        field: 'variants.scopedPrice.value',
+        type: FilterFieldTypes.NUMBER,
+      });
+
+      // TODO: verify if we need a new CATEGORY_ID type
+      // filterFields.push({
+      //   field: 'categories.id',
+      //   type: FilterFieldTypes.CATEGORY_ID,
+      // });
+
+      return filterFields;
+    } catch (error) {
+      //TODO: better error, get status code etc...
+      throw new Error(`getSearchableAttributes failed. ${error}`);
     }
   };
 }

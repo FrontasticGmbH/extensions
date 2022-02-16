@@ -2,20 +2,31 @@ import {
   CategoryReference,
   ProductProjection,
   TypedMoney,
+  ProductVariant,
+  Attribute as CommercetoolsAttribute,
+  AttributeDefinition as CommercetoolsAttributeDefinition,
   Money as CommercetoolsMoney,
+  ProductType as CommercetoolsProductType,
 } from '@commercetools/platform-sdk';
 import { Product } from '../../../types/product/Product';
 import { Variant } from '../../../types/product/Variant';
 import { Attributes } from '../../../types/product/Attributes';
 import { Category } from '../../../types/product/Category';
-
-import {
-  ProductVariant,
-  Attribute as CommercetoolsAttribute,
-} from '@commercetools/platform-sdk/dist/declarations/src/generated/models/product';
 import { ProductRouter } from '../../utils/ProductRouter';
 import { Locale } from '../Locale';
 import { Money } from '../../../types/product/Money';
+import { FilterField, FilterFieldTypes, FilterFieldValue } from '../../../types/product/FilterField';
+import {
+  AttributeEnumType,
+  AttributeLocalizedEnumType,
+  AttributeSetType,
+  AttributeType,
+} from '@commercetools/platform-sdk/dist/declarations/src/generated/models/product-type';
+
+const TypeMap = new Map<string, string>([
+  ['lenum', FilterFieldTypes.LOCALIZED_ENUM],
+  ['ltext', FilterFieldTypes.LOCALIZED_TEXT],
+]);
 
 export class ProductMapper {
   static commercetoolsProductProjectionToProduct: (commercetoolsProduct: ProductProjection, locale: Locale) => Product =
@@ -147,6 +158,63 @@ export class ProductMapper {
           : 2,
       centAmount: commercetoolsMoney.centAmount,
       currencyCode: commercetoolsMoney.currencyCode,
+    };
+  }
+
+  static commercetoolsProductTypesToFilterFields(
+    commercetoolsProductTypes: CommercetoolsProductType[],
+    locale: Locale,
+  ): FilterField[] {
+    const filterFields: FilterField[] = [];
+
+    commercetoolsProductTypes?.forEach((productType) => {
+      productType.attributes?.forEach((attribute) => {
+        if (!attribute.isSearchable) {
+          return;
+        }
+
+        filterFields.push(ProductMapper.commercetoolsAttributeDefinitionToFilterField(attribute, locale));
+      });
+    });
+
+    return filterFields;
+  }
+
+  static commercetoolsAttributeDefinitionToFilterField(
+    commercetoolsAttributeDefinition: CommercetoolsAttributeDefinition,
+    locale: Locale,
+  ): FilterField {
+    let commercetoolsAttributeType = commercetoolsAttributeDefinition.type.name;
+
+    let commercetoolsAttributeValues = commercetoolsAttributeDefinition.type.hasOwnProperty('values')
+      ? (commercetoolsAttributeDefinition.type as AttributeEnumType | AttributeLocalizedEnumType).values
+      : [];
+
+    if (commercetoolsAttributeType === 'set' && commercetoolsAttributeDefinition.type.hasOwnProperty('elementType')) {
+      const elementType: AttributeType = (commercetoolsAttributeDefinition.type as AttributeSetType).elementType;
+
+      commercetoolsAttributeType = elementType.name;
+      commercetoolsAttributeValues = elementType.hasOwnProperty('values')
+        ? (elementType as AttributeEnumType | AttributeLocalizedEnumType).values
+        : [];
+    }
+
+    const filterFieldValues: FilterFieldValue[] = [];
+
+    for (const value of commercetoolsAttributeValues) {
+      filterFieldValues.push({
+        value: value.key,
+        name: value.label?.[locale.language] ?? value.label,
+      });
+    }
+
+    return {
+      field: `variants.attributes.${commercetoolsAttributeDefinition.name}`,
+      type: TypeMap.has(commercetoolsAttributeType)
+        ? TypeMap.get(commercetoolsAttributeType)
+        : commercetoolsAttributeType,
+      label: commercetoolsAttributeDefinition.label?.[locale.language],
+      values: filterFieldValues.length > 0 ? filterFieldValues : undefined,
     };
   }
 }
