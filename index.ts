@@ -3,11 +3,11 @@ import {
   DataSourceConfiguration,
   DataSourceContext,
   DataSourceResult,
+  DynamicPageContext,
   DynamicPageRedirectResult,
   DynamicPageSuccessResult,
   Request,
   Response,
-  DynamicPageContext,
 } from '@frontastic/extension-types';
 
 // **************************
