@@ -1,0 +1,7 @@
+{
+  "customDataSourceType": "example/star-wars-character-search",
+  "name": "Star wars character search",
+  "category": "Content",
+  "icon": "source",
+  "schema": []
+}

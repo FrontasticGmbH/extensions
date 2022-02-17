@@ -194,6 +194,47 @@ export default {
         dataSourcePayload: config.configuration,
       };
     },
+    'example/star-wars-character-search': async (
+      config: DataSourceConfiguration,
+      context: DataSourceContext,
+    ): Promise<DataSourceResult> => {
+      const pageSize = context.request.query.pageSize || 10;
+      const after = context.request.query.cursor || null;
+      return await axios
+        .post('https://swapi-graphql.netlify.app/.netlify/functions/index', {
+          query: `{
+            allPeople(first: ${pageSize}, after: ${JSON.stringify(after)}) {
+              totalCount
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              people {
+                id
+                name
+                species {
+                  name
+                }
+              }
+            }
+          }`,
+        })
+        .then(
+          (response): DataSourceResult => {
+            return {
+              dataSourcePayload: response.data?.data?.allPeople || {},
+            } as DataSourceResult;
+          },
+        )
+        .catch((reason) => {
+          return {
+            dataSourcePayload: {
+              ok: false,
+              error: reason.toString(),
+            },
+          } as DataSourceResult;
+        });
+    },
   },
   actions: {
     // **************************
