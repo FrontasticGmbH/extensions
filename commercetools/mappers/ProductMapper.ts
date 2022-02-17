@@ -24,8 +24,8 @@ import {
 } from '@commercetools/platform-sdk/dist/declarations/src/generated/models/product-type';
 
 const TypeMap = new Map<string, string>([
-  ['lenum', FilterFieldTypes.LOCALIZED_ENUM],
-  ['ltext', FilterFieldTypes.LOCALIZED_TEXT],
+  ['lenum', FilterFieldTypes.ENUM],
+  ['ltext', FilterFieldTypes.TEXT],
 ]);
 
 export class ProductMapper {

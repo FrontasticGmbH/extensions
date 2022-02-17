@@ -3,7 +3,6 @@ import { ProductApi } from '../../commercetools/ProductApi';
 import { ActionContext } from '@frontastic/extension-types';
 import { ProductQueryFactory } from '../../utils/ProductQueryFactory';
 import { ProductQuery } from '../../../types/query/ProductQuery';
-import { ProductMapper } from '../mappers/ProductMapper';
 
 type ActionHook = (request: Request, actionContext: ActionContext) => Promise<Response>;
 
@@ -51,7 +50,7 @@ export const query: ActionHook = async (request: Request, actionContext: ActionC
   return response;
 };
 
-export const getSearchableAttributes: ActionHook = async (request: Request, actionContext: ActionContext) => {
+export const searchableAttributes: ActionHook = async (request: Request, actionContext: ActionContext) => {
   const productApi = new ProductApi(actionContext.frontasticContext, request.query.locale);
 
   const result = await productApi.getSearchableAttributes();
