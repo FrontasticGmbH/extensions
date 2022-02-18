@@ -1,4 +1,5 @@
 import {
+  Category as CommercetoolsCategory,
   CategoryReference,
   ProductProjection,
   TypedMoney,
@@ -24,6 +25,10 @@ import {
 } from '@commercetools/platform-sdk/dist/declarations/src/generated/models/product-type';
 
 const TypeMap = new Map<string, string>([
+  ['boolean', FilterFieldTypes.BOOLEAN],
+  ['enum', FilterFieldTypes.ENUM],
+  ['text', FilterFieldTypes.TEXT],
+  ['number', FilterFieldTypes.NUMBER],
   ['lenum', FilterFieldTypes.ENUM],
   ['ltext', FilterFieldTypes.TEXT],
 ]);
@@ -36,7 +41,7 @@ export class ProductMapper {
         version: commercetoolsProduct.version.toString(),
         name: commercetoolsProduct.name[locale.language],
         slug: commercetoolsProduct.slug[locale.language],
-        categories: ProductMapper.commercetoolsCategoriesToCategories(commercetoolsProduct.categories),
+        categories: ProductMapper.commercetoolsCategoryReferencesToCategories(commercetoolsProduct.categories, locale),
         variants: ProductMapper.commercetoolsProductProjectionToVariants(commercetoolsProduct, locale),
       };
 
@@ -98,18 +103,45 @@ export class ProductMapper {
     return attributes;
   };
 
-  static commercetoolsCategoriesToCategories: (commercetoolsCategories: CategoryReference[]) => Category[] = (
-    commercetoolsCategories: CategoryReference[],
-  ) => {
+  static commercetoolsCategoryReferencesToCategories: (
+    commercetoolsCategoryReferences: CategoryReference[],
+    locale: Locale,
+  ) => Category[] = (commercetoolsCategoryReferences: CategoryReference[], locale: Locale) => {
     const categories: Category[] = [];
 
-    commercetoolsCategories.forEach((commercetoolsCategory) => {
-      categories.push({
+    commercetoolsCategoryReferences.forEach((commercetoolsCategory) => {
+      let category: Category = {
         categoryId: commercetoolsCategory.id,
-      } as Category);
+      };
+
+      if (commercetoolsCategory.obj) {
+        category = ProductMapper.commercetoolsCategoryToCategory(commercetoolsCategory.obj, locale);
+      }
+
+      categories.push(category);
     });
 
     return categories;
+  };
+
+  static commercetoolsCategoryToCategory: (commercetoolsCategory: CommercetoolsCategory, locale: Locale) => Category = (
+    commercetoolsCategory: CommercetoolsCategory,
+    locale: Locale,
+  ) => {
+    return {
+      categoryId: commercetoolsCategory.id,
+      name: commercetoolsCategory.name?.[locale.language] ?? undefined,
+      slug: commercetoolsCategory.slug?.[locale.language] ?? undefined,
+      depth: commercetoolsCategory.ancestors.length,
+      path:
+        commercetoolsCategory.ancestors.length > 0
+          ? `/${commercetoolsCategory.ancestors
+              .map((ancestor) => {
+                return ancestor.id;
+              })
+              .join('/')}/${commercetoolsCategory.id}`
+          : `/${commercetoolsCategory.id}`,
+    };
   };
 
   // TODO: fix param type so we can remove ts-ignore tag

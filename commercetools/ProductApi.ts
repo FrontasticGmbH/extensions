@@ -7,6 +7,8 @@ import { FilterField, FilterFieldTypes } from '../../types/product/FilterField';
 import { FilterTypes } from '../../types/query/Filter';
 import { TermFilter } from '../../types/query/TermFilter';
 import { RangeFilter } from '../../types/query/RangeFilter';
+import { CategoryQuery } from '../../types/query/CategoryQuery';
+import { Category } from '../../types/product/Category';
 
 // TODO: get projectKey form config
 
@@ -16,7 +18,7 @@ export class ProductApi extends BaseApi {
       const locale = await this.getCommercetoolsLocal();
 
       // TODO: get default from constant
-      const limit = +productQuery.limit || 25;
+      const limit = +productQuery.limit || 24;
 
       // TODO: cache projectSettings
       // const projectSettings = await apiRoot.withProjectKey({ projectKey }).get().execute();
@@ -101,7 +103,7 @@ export class ProductApi extends BaseApi {
     try {
       const result = await this.query(productQuery);
 
-      return result.items.shift();
+      return result.items.shift() as Product;
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`getProduct failed. ${error}`);
@@ -116,27 +118,67 @@ export class ProductApi extends BaseApi {
 
       const filterFields = ProductMapper.commercetoolsProductTypesToFilterFields(response.body.results, locale);
 
-      // Manually add Price filter field since is not included as attributes in CT
       filterFields.push({
-        field: 'variants.price',
-        type: FilterFieldTypes.NUMBER,
+        field: 'categories.id',
+        type: FilterFieldTypes.ENUM,
+        values: await this.queryCategories({ limit: 250 }).then((result) => {
+          return (result.items as Category[]).map((item) => {
+            return {
+              value: item.categoryId,
+              name: item.name,
+            };
+          });
+        }),
       });
-
-      filterFields.push({
-        field: 'variants.scopedPrice.value',
-        type: FilterFieldTypes.NUMBER,
-      });
-
-      // TODO: verify if we need a new CATEGORY_ID type
-      // filterFields.push({
-      //   field: 'categories.id',
-      //   type: FilterFieldTypes.CATEGORY_ID,
-      // });
 
       return filterFields;
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`getSearchableAttributes failed. ${error}`);
+    }
+  };
+
+  queryCategories: (categoryQuery: CategoryQuery) => Promise<Result> = async (categoryQuery: CategoryQuery) => {
+    try {
+      const locale = await this.getCommercetoolsLocal();
+
+      // TODO: get default from constant
+      const limit = +categoryQuery.limit || 24;
+
+      const methodArgs = {
+        queryArgs: {
+          limit: limit,
+          where: categoryQuery.slug ? `slug(${locale.language}="${categoryQuery.slug}")` : undefined,
+        },
+      };
+
+      return await this.getApiForProject()
+        .categories()
+        .get(methodArgs)
+        .execute()
+        .then((response) => {
+          const items = response.body.results.map((category) =>
+            ProductMapper.commercetoolsCategoryToCategory(category, locale),
+          );
+
+          const result: Result = {
+            total: response.body.total,
+            items: items,
+            count: response.body.count,
+            // previousCursor: previousCursor,
+            // nextCursor: nextCursor,
+            query: categoryQuery,
+          };
+
+          return result;
+        })
+        .catch((error) => {
+          console.log('error:: ', error);
+          throw error;
+        });
+    } catch (error) {
+      //TODO: better error, get status code etc...
+      throw new Error(`queryCategories failed. ${error}`);
     }
   };
 }
