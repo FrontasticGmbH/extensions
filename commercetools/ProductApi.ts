@@ -4,6 +4,9 @@ import { ProductQuery } from '../../types/query/ProductQuery';
 import { Product } from '../../types/product/Product';
 import { BaseApi } from './BaseApi';
 import { FilterField, FilterFieldTypes } from '../../types/product/FilterField';
+import { FilterTypes } from '../../types/query/Filter';
+import { TermFilter } from '../../types/query/TermFilter';
+import { RangeFilter } from '../../types/query/RangeFilter';
 
 // TODO: get projectKey form config
 
@@ -27,6 +30,30 @@ export class ProductApi extends BaseApi {
         filterQuery.push(`variants.sku:"${productQuery.skus.join('","')}"`);
       }
 
+      if (productQuery.filters !== undefined) {
+        productQuery.filters.forEach((filter) => {
+          switch (filter.type) {
+            case FilterTypes.TERM:
+              filterQuery.push(`${filter.identifier}.key:"${(filter as TermFilter).terms.join('","')}"`);
+              break;
+            case FilterTypes.BOOLEAN:
+              filterQuery.push(
+                `${filter.identifier}:${(filter as TermFilter).terms[0].toString().toLowerCase() === 'true'}`,
+              );
+              break;
+            case FilterTypes.RANGE:
+              if (filter.identifier === 'price') {
+                filterQuery.push(
+                  `variants.${filter.identifier}.centAmount:range (${(filter as RangeFilter).min ?? '*'} to ${
+                    (filter as RangeFilter).max ?? '*'
+                  })`,
+                );
+              }
+              break;
+          }
+        });
+      }
+
       // TODO: build methodArgs with type so we could infer the fields
       const methodArgs = {
         queryArgs: {
@@ -38,23 +65,32 @@ export class ProductApi extends BaseApi {
         },
       };
 
-      const response = await this.getApiForProject().productProjections().search().get(methodArgs).execute();
+      return await this.getApiForProject()
+        .productProjections()
+        .search()
+        .get(methodArgs)
+        .execute()
+        .then((response) => {
+          const items = response.body.results.map((product) =>
+            ProductMapper.commercetoolsProductProjectionToProduct(product, locale),
+          );
 
-      const items = response.body.results.map((product) =>
-        ProductMapper.commercetoolsProductProjectionToProduct(product, locale),
-      );
+          const result: Result = {
+            total: response.body.total,
+            items: items,
+            count: response.body.count,
+            // facets: facets,
+            // previousCursor: previousCursor,
+            // nextCursor: nextCursor,
+            query: productQuery,
+          };
 
-      const result: Result = {
-        total: response.body.total,
-        items: items,
-        count: response.body.count,
-        // facets: facets,
-        // previousCursor: previousCursor,
-        // nextCursor: nextCursor,
-        query: productQuery,
-      };
-
-      return result;
+          return result;
+        })
+        .catch((error) => {
+          console.log('error:: ', error);
+          throw error;
+        });
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`query failed. ${error}`);
