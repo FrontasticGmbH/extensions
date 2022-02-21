@@ -1,12 +1,12 @@
 import { Request, Response } from '@frontastic/extension-types/src/ts/index';
-import { CartApi } from '../../commercetools/CartApi';
 import { ActionContext } from '@frontastic/extension-types';
 import { Cart } from '../../../types/cart/Cart';
 import { LineItem } from '../../../types/cart/LineItem';
 import { Address } from '../../../types/account/Address';
 import { CartFetcher } from '../../utils/CartFetcher';
 import { ShippingMethod } from '../../../types/cart/ShippingMethod';
-import { Payment, PaymentStatuses } from '../../../../../saas/project-libraries/types/cart/Payment';
+import { Payment, PaymentStatuses } from '../../../types/cart/Payment';
+import { CartApi } from '../CartApi';
 
 type ActionHook = (request: Request, actionContext: ActionContext) => Promise<Response>;
 
