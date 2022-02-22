@@ -10,8 +10,6 @@ import { RangeFilter } from '../../types/query/RangeFilter';
 import { CategoryQuery } from '../../types/query/CategoryQuery';
 import { Category } from '../../types/product/Category';
 
-// TODO: get projectKey form config
-
 export class ProductApi extends BaseApi {
   query: (productQuery: ProductQuery) => Promise<Result> = async (productQuery: ProductQuery) => {
     try {
@@ -64,6 +62,14 @@ export class ProductApi extends BaseApi {
           priceCountry: locale.country,
           'filter.query': filterQuery?.length !== 0 ? filterQuery : undefined,
           [`text.${locale.language}`]: productQuery.query,
+          facet: [
+            ...ProductMapper.commercetoolsProductTypesToCommercetoolsQueryArgFacet(
+              await this.getProductTypes(),
+              locale,
+            ),
+            'variants.scopedPrice.value.centAmount:range (0 to *)', // Include Scoped Price facet
+            'variants.price.centAmount:range (0 to *)', // Include Price facet
+          ],
         },
       };
 
@@ -81,7 +87,7 @@ export class ProductApi extends BaseApi {
             total: response.body.total,
             items: items,
             count: response.body.count,
-            // facets: facets,
+            facets: ProductMapper.commercetoolsFacetResultsToFacets(response.body.facets, productQuery, locale),
             // previousCursor: previousCursor,
             // nextCursor: nextCursor,
             query: productQuery,
@@ -90,7 +96,6 @@ export class ProductApi extends BaseApi {
           return result;
         })
         .catch((error) => {
-          console.log('error:: ', error);
           throw error;
         });
     } catch (error) {
@@ -173,7 +178,6 @@ export class ProductApi extends BaseApi {
           return result;
         })
         .catch((error) => {
-          console.log('error:: ', error);
           throw error;
         });
     } catch (error) {

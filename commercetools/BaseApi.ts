@@ -1,11 +1,12 @@
-import { ApiRoot, createApiBuilderFromCtpClient, Project } from '@commercetools/platform-sdk';
+import { ApiRoot, createApiBuilderFromCtpClient, Project, ProductType } from '@commercetools/platform-sdk';
 import { ClientFactory } from './ClientFactory';
 import { Context } from '@frontastic/extension-types';
 import { getConfig } from '../utils/GetConfig';
 import { Locale } from './Locale';
 import { ByProjectKeyRequestBuilder } from '@commercetools/platform-sdk/dist/declarations/src/generated/client/by-project-key-request-builder';
 
-const localeRegex = /^(?<language>[a-z]{2,})(?:_(?<territory>[A-Z]{2,}))?(?:\.(?<codeset>[A-Z0-9_+-]+))?(?:@(?<modifier>[A-Za-z]+))?$/;
+const localeRegex =
+  /^(?<language>[a-z]{2,})(?:_(?<territory>[A-Z]{2,}))?(?:\.(?<codeset>[A-Z0-9_+-]+))?(?:@(?<modifier>[A-Za-z]+))?$/;
 
 const languageToTerritory = {
   en: 'GB',
@@ -323,6 +324,10 @@ const projectCache: {
   [projectKey: string]: { project: Project; expiryTime: Date };
 } = {};
 
+const productTypesCache: {
+  [projectKey: string]: { productTypes: ProductType[]; expiryTime: Date };
+} = {};
+
 const pickCandidate = (candidates: string[], availableOptions: string[]): string | undefined => {
   for (const candidate of candidates) {
     const found = availableOptions.find((option) => option.toLowerCase() === candidate.toLowerCase());
@@ -408,6 +413,28 @@ export abstract class BaseApi {
       country,
       currency,
     });
+  }
+
+  protected async getProductTypes() {
+    const now = new Date();
+
+    if (this.projectKey in productTypesCache) {
+      const cacheEntry = productTypesCache[this.projectKey];
+      if (cacheEntry.expiryTime < now) {
+        return cacheEntry.productTypes;
+      }
+    }
+
+    const response = await this.getApiForProject().productTypes().get().execute();
+
+    const productTypes = response.body.results;
+
+    productTypesCache[this.projectKey] = {
+      productTypes,
+      expiryTime: new Date(now.getMilliseconds() + projectCacheTtlMilliseconds),
+    };
+
+    return productTypes;
   }
 
   private async getProject() {
