@@ -31,7 +31,6 @@ import { TermFacet } from '../../../types/result/TermFacet';
 import { RangeFacet as ResultRangeFacet } from '../../../types/result/RangeFacet';
 import { Term } from '../../../types/result/Term';
 import { ProductQuery } from '../../../types/query/ProductQuery';
-import { Facet as QueryFacet } from '../../../types/query/Facet';
 import { TermFacet as QueryTermFacet } from '../../../types/query/TermFacet';
 import { RangeFacet as QueryRangeFacet } from '../../../types/query/RangeFacet';
 
