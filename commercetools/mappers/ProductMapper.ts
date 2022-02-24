@@ -33,6 +33,9 @@ import { Term } from '../../../types/result/Term';
 import { ProductQuery } from '../../../types/query/ProductQuery';
 import { TermFacet as QueryTermFacet } from '../../../types/query/TermFacet';
 import { RangeFacet as QueryRangeFacet } from '../../../types/query/RangeFacet';
+import { Facet as QueryFacet } from '../../../types/query/Facet';
+import { FacetDefinition } from '../../../types/product/FacetDefinition';
+import { FilterTypes } from '../../../types/query/Filter';
 
 const TypeMap = new Map<string, string>([
   ['boolean', FilterFieldTypes.BOOLEAN],
@@ -260,7 +263,7 @@ export class ProductMapper {
     };
   }
 
-  static commercetoolsProductTypesToCommercetoolsQueryArgFacet(
+  static commercetoolsProductTypesToCommercetoolsQueryArgFacets(
     commercetoolsProductTypes: CommercetoolsProductType[],
     locale: Locale,
   ): string[] {
@@ -273,7 +276,7 @@ export class ProductMapper {
         }
 
         const facetId = `variants.attributes.${attribute.name}`;
-        let facet = '';
+        let facet: string;
 
         switch (attribute.type.name) {
           case 'money':
@@ -307,6 +310,90 @@ export class ProductMapper {
     });
 
     return queryArgFacets;
+  }
+
+  static commercetoolsProductTypesToFacetDefinitions(
+    commercetoolsProductTypes: CommercetoolsProductType[],
+    locale: Locale,
+  ): FacetDefinition[] {
+    const facetDefinitions: FacetDefinition[] = [];
+
+    console.log('commercetoolsProductTypes:: ', commercetoolsProductTypes);
+
+    commercetoolsProductTypes?.forEach((productType) => {
+      productType.attributes?.forEach((attribute) => {
+        if (!attribute.isSearchable) {
+          return;
+        }
+
+        facetDefinitions.push({
+          attributeType: attribute.type.name,
+          attributeId: `variants.attributes.${attribute.name}`,
+        });
+      });
+    });
+
+    return facetDefinitions;
+  }
+
+  static facetDefinitionsToFilterFacets(
+    queryFacets: QueryFacet[],
+    facetDefinitions: FacetDefinition[],
+    locale: Locale,
+  ): string[] {
+    const filterFacets: string[] = [];
+    const typeLookup: { [key: string]: string } = {};
+
+    facetDefinitions.forEach((facetDefinition) => {
+      typeLookup[facetDefinition.attributeId] = facetDefinition.attributeType;
+    });
+
+    queryFacets.forEach((queryFacet) => {
+      console.log('queryFacet:: ', queryFacet);
+
+      if (!typeLookup.hasOwnProperty(queryFacet.identifier)) {
+        return;
+      }
+      switch (typeLookup[queryFacet.identifier]) {
+        case 'money':
+          filterFacets.push(
+            `${queryFacet.identifier}.centAmount:range (${(queryFacet as QueryRangeFacet).min} to ${
+              (queryFacet as QueryRangeFacet).max
+            })`,
+          );
+          break;
+        case 'enum':
+          filterFacets.push(`${queryFacet.identifier}.label:"${(queryFacet as QueryTermFacet).terms.join('","')}"`);
+          break;
+        case 'lenum':
+          filterFacets.push(
+            `${queryFacet.identifier}.label.${locale.language}:"${(queryFacet as QueryTermFacet).terms.join('","')}"`,
+          );
+          break;
+        case 'ltext':
+          filterFacets.push(
+            `${queryFacet.identifier}.${locale.language}:"${(queryFacet as QueryTermFacet).terms.join('","')}"`,
+          );
+          break;
+        case 'number':
+        case 'boolean':
+        case 'text':
+        case 'reference':
+        default:
+          if (queryFacet.type === FilterTypes.TERM || queryFacet.type === FilterTypes.BOOLEAN) {
+            filterFacets.push(`${queryFacet.identifier}:"${(queryFacet as QueryTermFacet).terms.join('","')}"`);
+          } else {
+            filterFacets.push(
+              `${queryFacet.identifier}:range (${(queryFacet as QueryRangeFacet).min} to ${
+                (queryFacet as QueryRangeFacet).max
+              })`,
+            );
+          }
+          break;
+      }
+    });
+
+    return filterFacets;
   }
 
   static commercetoolsFacetResultsToFacets(

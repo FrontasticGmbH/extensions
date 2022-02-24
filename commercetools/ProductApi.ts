@@ -9,6 +9,7 @@ import { TermFilter } from '../../types/query/TermFilter';
 import { RangeFilter } from '../../types/query/RangeFilter';
 import { CategoryQuery } from '../../types/query/CategoryQuery';
 import { Category } from '../../types/product/Category';
+import { FacetDefinition } from '../../types/product/FacetDefinition';
 
 export class ProductApi extends BaseApi {
   query: (productQuery: ProductQuery) => Promise<Result> = async (productQuery: ProductQuery) => {
@@ -20,7 +21,26 @@ export class ProductApi extends BaseApi {
 
       // TODO: cache projectSettings
       // const projectSettings = await apiRoot.withProjectKey({ projectKey }).get().execute();
-      const filterQuery = [];
+      const filterQuery: string[] = [];
+      const filterFacets: string[] = [];
+
+      const queryArgFacets = [
+        ...ProductMapper.commercetoolsProductTypesToCommercetoolsQueryArgFacets(await this.getProductTypes(), locale),
+        'variants.scopedPrice.value.centAmount:range (0 to *) as variants.scopedPrice.value', // Include Scoped Price facet
+        'variants.price.centAmount:range (0 to *) as variants.price', // Include Price facet
+      ];
+
+      const facetDefinitions: FacetDefinition[] = [
+        ...ProductMapper.commercetoolsProductTypesToFacetDefinitions(await this.getProductTypes(), locale),
+        {
+          attributeId: 'variants.scopedPrice.value',
+          attributeType: 'money',
+        },
+        {
+          attributeId: 'variants.price',
+          attributeType: 'money',
+        },
+      ];
 
       if (productQuery.productIds !== undefined && productQuery.productIds.length !== 0) {
         filterQuery.push(`id:"${productQuery.productIds.join('","')}"`);
@@ -54,24 +74,28 @@ export class ProductApi extends BaseApi {
         });
       }
 
+      if (productQuery.facets !== undefined) {
+        filterFacets.push(
+          ...ProductMapper.facetDefinitionsToFilterFacets(productQuery.facets, facetDefinitions, locale),
+        );
+      }
+
       // TODO: build methodArgs with type so we could infer the fields
       const methodArgs = {
         queryArgs: {
           limit: limit,
           priceCurrency: locale.currency,
           priceCountry: locale.country,
-          'filter.query': filterQuery?.length !== 0 ? filterQuery : undefined,
-          [`text.${locale.language}`]: productQuery.query,
-          facet: [
-            ...ProductMapper.commercetoolsProductTypesToCommercetoolsQueryArgFacet(
-              await this.getProductTypes(),
-              locale,
-            ),
-            'variants.scopedPrice.value.centAmount:range (0 to *)', // Include Scoped Price facet
-            'variants.price.centAmount:range (0 to *)', // Include Price facet
-          ],
+          facet: queryArgFacets,
+          filter: filterFacets.length > 0 ? filterFacets : undefined,
+          'filter.facets': filterFacets.length > 0 ? filterFacets : undefined,
+          'filter.query': filterQuery.length > 0 ? filterQuery : undefined,
         },
       };
+
+      if (productQuery.query) {
+        methodArgs.queryArgs[`text.${locale.language}`] = productQuery.query;
+      }
 
       return await this.getApiForProject()
         .productProjections()
