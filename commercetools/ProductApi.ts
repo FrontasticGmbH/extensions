@@ -19,28 +19,24 @@ export class ProductApi extends BaseApi {
       // TODO: get default from constant
       const limit = +productQuery.limit || 24;
 
-      // TODO: cache projectSettings
-      // const projectSettings = await apiRoot.withProjectKey({ projectKey }).get().execute();
       const filterQuery: string[] = [];
       const filterFacets: string[] = [];
 
-      const queryArgFacets = [
-        ...ProductMapper.commercetoolsProductTypesToCommercetoolsQueryArgFacets(await this.getProductTypes(), locale),
-        'variants.scopedPrice.value.centAmount:range (0 to *) as variants.scopedPrice.value', // Include Scoped Price facet
-        'variants.price.centAmount:range (0 to *) as variants.price', // Include Price facet
-      ];
-
       const facetDefinitions: FacetDefinition[] = [
         ...ProductMapper.commercetoolsProductTypesToFacetDefinitions(await this.getProductTypes(), locale),
+        // Include Scoped Price facet
         {
           attributeId: 'variants.scopedPrice.value',
           attributeType: 'money',
         },
+        // Include Price facet
         {
           attributeId: 'variants.price',
           attributeType: 'money',
         },
       ];
+
+      const queryArgFacets = ProductMapper.facetDefinitionsToCommercetoolsQueryArgFacets(facetDefinitions, locale);
 
       if (productQuery.productIds !== undefined && productQuery.productIds.length !== 0) {
         filterQuery.push(`id:"${productQuery.productIds.join('","')}"`);
@@ -80,22 +76,18 @@ export class ProductApi extends BaseApi {
         );
       }
 
-      // TODO: build methodArgs with type so we could infer the fields
       const methodArgs = {
         queryArgs: {
           limit: limit,
           priceCurrency: locale.currency,
           priceCountry: locale.country,
-          facet: queryArgFacets,
+          facet: queryArgFacets.length > 0 ? queryArgFacets : undefined,
           filter: filterFacets.length > 0 ? filterFacets : undefined,
           'filter.facets': filterFacets.length > 0 ? filterFacets : undefined,
           'filter.query': filterQuery.length > 0 ? filterQuery : undefined,
+          [`text.${locale.language}`]: productQuery.query,
         },
       };
-
-      if (productQuery.query) {
-        methodArgs.queryArgs[`text.${locale.language}`] = productQuery.query;
-      }
 
       return await this.getApiForProject()
         .productProjections()

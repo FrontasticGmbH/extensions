@@ -263,62 +263,11 @@ export class ProductMapper {
     };
   }
 
-  static commercetoolsProductTypesToCommercetoolsQueryArgFacets(
-    commercetoolsProductTypes: CommercetoolsProductType[],
-    locale: Locale,
-  ): string[] {
-    const queryArgFacets: string[] = [];
-
-    commercetoolsProductTypes?.forEach((productType) => {
-      productType.attributes?.forEach((attribute) => {
-        if (!attribute.isSearchable) {
-          return;
-        }
-
-        const facetId = `variants.attributes.${attribute.name}`;
-        let facet: string;
-
-        switch (attribute.type.name) {
-          case 'money':
-            facet = `${facetId}.centAmount:range (0 to *)`;
-            break;
-
-          case 'enum':
-            facet = `${facetId}.label`;
-            break;
-
-          case 'lenum':
-            facet = `${facetId}.label.${locale.language}`;
-            break;
-
-          case 'ltext':
-            facet = `${facetId}.${locale.language}`;
-            break;
-
-          case 'number':
-          case 'boolean':
-          case 'text':
-          case 'reference':
-          default:
-            facet = facetId;
-            break;
-        }
-
-        // Alias to identifier used by us
-        queryArgFacets.push(`${facet} as ${facetId}`);
-      });
-    });
-
-    return queryArgFacets;
-  }
-
   static commercetoolsProductTypesToFacetDefinitions(
     commercetoolsProductTypes: CommercetoolsProductType[],
     locale: Locale,
   ): FacetDefinition[] {
     const facetDefinitions: FacetDefinition[] = [];
-
-    console.log('commercetoolsProductTypes:: ', commercetoolsProductTypes);
 
     commercetoolsProductTypes?.forEach((productType) => {
       productType.attributes?.forEach((attribute) => {
@@ -336,6 +285,45 @@ export class ProductMapper {
     return facetDefinitions;
   }
 
+  static facetDefinitionsToCommercetoolsQueryArgFacets(facetDefinitions: FacetDefinition[], locale: Locale): string[] {
+    const queryArgFacets: string[] = [];
+
+    facetDefinitions?.forEach((facetDefinition) => {
+      let facet: string;
+
+      switch (facetDefinition.attributeType) {
+        case 'money':
+          facet = `${facetDefinition.attributeId}.centAmount:range (0 to *)`;
+          break;
+
+        case 'enum':
+          facet = `${facetDefinition.attributeId}.label`;
+          break;
+
+        case 'lenum':
+          facet = `${facetDefinition.attributeId}.label.${locale.language}`;
+          break;
+
+        case 'ltext':
+          facet = `${facetDefinition.attributeId}.${locale.language}`;
+          break;
+
+        case 'number':
+        case 'boolean':
+        case 'text':
+        case 'reference':
+        default:
+          facet = facetDefinition.attributeId;
+          break;
+      }
+
+      // Alias to identifier used by us
+      queryArgFacets.push(`${facet} as ${facetDefinition.attributeId}`);
+    });
+
+    return queryArgFacets;
+  }
+
   static facetDefinitionsToFilterFacets(
     queryFacets: QueryFacet[],
     facetDefinitions: FacetDefinition[],
@@ -349,11 +337,10 @@ export class ProductMapper {
     });
 
     queryFacets.forEach((queryFacet) => {
-      console.log('queryFacet:: ', queryFacet);
-
       if (!typeLookup.hasOwnProperty(queryFacet.identifier)) {
         return;
       }
+
       switch (typeLookup[queryFacet.identifier]) {
         case 'money':
           filterFacets.push(
