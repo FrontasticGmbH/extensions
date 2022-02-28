@@ -6,7 +6,6 @@ import {
   FacetResults as CommercetoolsFacetResults,
   Money as CommercetoolsMoney,
   ProductProjection as CommercetoolsProductProjection,
-  ProductProjectionPagedSearchResponse as CommercetoolsProductProjectionPagedSearchResponse,
   ProductType as CommercetoolsProductType,
   ProductVariant,
   RangeFacetResult as CommercetoolsRangeFacetResult,
@@ -37,7 +36,6 @@ import { RangeFacet as QueryRangeFacet } from '../../../types/query/RangeFacet';
 import { Facet as QueryFacet } from '../../../types/query/Facet';
 import { FacetDefinition } from '../../../types/product/FacetDefinition';
 import { FilterTypes } from '../../../types/query/Filter';
-import { ProductProjectionPagedSearchResponse } from '@commercetools/platform-sdk/dist/declarations/src/generated/models/product';
 
 const TypeMap = new Map<string, string>([
   ['boolean', FilterFieldTypes.BOOLEAN],
@@ -503,12 +501,12 @@ export class ProductMapper {
     return rangeFacet;
   }
 
-  static calculatePreviousCursor(response: CommercetoolsProductProjectionPagedSearchResponse) {
-    return response.offset - response.count >= 0 ? `offset:${response.offset - response.count}` : undefined;
+  static calculatePreviousCursor(offset: number, count: number) {
+    return offset - count >= 0 ? `offset:${offset - count}` : undefined;
   }
 
-  static calculateNextCursor(response: CommercetoolsProductProjectionPagedSearchResponse) {
-    return response.offset + response.count < response.total ? `offset:${response.offset + response.count}` : undefined;
+  static calculateNextCursor(offset: number, count: number, total: number) {
+    return offset + count < total ? `offset:${offset + count}` : undefined;
   }
 
   private static findFacetQuery(productQuery: ProductQuery, facetKey: string) {

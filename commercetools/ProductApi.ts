@@ -12,15 +12,21 @@ import { Category } from '../../types/product/Category';
 import { FacetDefinition } from '../../types/product/FacetDefinition';
 
 export class ProductApi extends BaseApi {
+  private getOffsetFromCursor = (cursor: string) => {
+    if (cursor === undefined) {
+      return undefined;
+    }
+
+    const offsetMach = cursor.match(/(?<=offset:).+/);
+    return offsetMach !== null ? +Object.values(offsetMach)[0] : undefined;
+  };
+
   query: (productQuery: ProductQuery) => Promise<Result> = async (productQuery: ProductQuery) => {
     try {
       const locale = await this.getCommercetoolsLocal();
 
       // TODO: get default from constant
       const limit = +productQuery.limit || 24;
-
-      const offsetMach = productQuery.cursor.match(/(?<=offset:).+/);
-      const offset = offsetMach !== null ? +Object.values(offsetMach)[0] : undefined;
 
       const filterQuery: string[] = [];
       const filterFacets: string[] = [];
@@ -82,7 +88,7 @@ export class ProductApi extends BaseApi {
       const methodArgs = {
         queryArgs: {
           limit: limit,
-          offset: offset,
+          offset: this.getOffsetFromCursor(productQuery.cursor),
           priceCurrency: locale.currency,
           priceCountry: locale.country,
           facet: queryArgFacets.length > 0 ? queryArgFacets : undefined,
@@ -108,8 +114,12 @@ export class ProductApi extends BaseApi {
             items: items,
             count: response.body.count,
             facets: ProductMapper.commercetoolsFacetResultsToFacets(response.body.facets, productQuery, locale),
-            previousCursor: ProductMapper.calculatePreviousCursor(response.body),
-            nextCursor: ProductMapper.calculateNextCursor(response.body),
+            previousCursor: ProductMapper.calculatePreviousCursor(response.body.offset, response.body.count),
+            nextCursor: ProductMapper.calculateNextCursor(
+              response.body.offset,
+              response.body.count,
+              response.body.total,
+            ),
             query: productQuery,
           };
 
@@ -175,6 +185,7 @@ export class ProductApi extends BaseApi {
       const methodArgs = {
         queryArgs: {
           limit: limit,
+          offset: this.getOffsetFromCursor(categoryQuery.cursor),
           where: categoryQuery.slug ? `slug(${locale.language}="${categoryQuery.slug}")` : undefined,
         },
       };
@@ -192,8 +203,12 @@ export class ProductApi extends BaseApi {
             total: response.body.total,
             items: items,
             count: response.body.count,
-            // previousCursor: previousCursor,
-            // nextCursor: nextCursor,
+            previousCursor: ProductMapper.calculatePreviousCursor(response.body.offset, response.body.count),
+            nextCursor: ProductMapper.calculateNextCursor(
+              response.body.offset,
+              response.body.count,
+              response.body.total,
+            ),
             query: categoryQuery,
           };
 
