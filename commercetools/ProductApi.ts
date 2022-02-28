@@ -19,6 +19,9 @@ export class ProductApi extends BaseApi {
       // TODO: get default from constant
       const limit = +productQuery.limit || 24;
 
+      const offsetMach = productQuery.cursor.match(/(?<=offset:).+/);
+      const offset = offsetMach !== null ? +Object.values(offsetMach)[0] : undefined;
+
       const filterQuery: string[] = [];
       const filterFacets: string[] = [];
 
@@ -79,6 +82,7 @@ export class ProductApi extends BaseApi {
       const methodArgs = {
         queryArgs: {
           limit: limit,
+          offset: offset,
           priceCurrency: locale.currency,
           priceCountry: locale.country,
           facet: queryArgFacets.length > 0 ? queryArgFacets : undefined,
@@ -104,8 +108,8 @@ export class ProductApi extends BaseApi {
             items: items,
             count: response.body.count,
             facets: ProductMapper.commercetoolsFacetResultsToFacets(response.body.facets, productQuery, locale),
-            // previousCursor: previousCursor,
-            // nextCursor: nextCursor,
+            previousCursor: ProductMapper.calculatePreviousCursor(response.body),
+            nextCursor: ProductMapper.calculateNextCursor(response.body),
             query: productQuery,
           };
 
@@ -151,6 +155,8 @@ export class ProductApi extends BaseApi {
           });
         }),
       });
+
+      // TODO: should we include `Product.ProductTypes` as searchable attribute?
 
       return filterFields;
     } catch (error) {

@@ -5,7 +5,8 @@ import {
   CategoryReference,
   FacetResults as CommercetoolsFacetResults,
   Money as CommercetoolsMoney,
-  ProductProjection,
+  ProductProjection as CommercetoolsProductProjection,
+  ProductProjectionPagedSearchResponse as CommercetoolsProductProjectionPagedSearchResponse,
   ProductType as CommercetoolsProductType,
   ProductVariant,
   RangeFacetResult as CommercetoolsRangeFacetResult,
@@ -36,6 +37,7 @@ import { RangeFacet as QueryRangeFacet } from '../../../types/query/RangeFacet';
 import { Facet as QueryFacet } from '../../../types/query/Facet';
 import { FacetDefinition } from '../../../types/product/FacetDefinition';
 import { FilterTypes } from '../../../types/query/Filter';
+import { ProductProjectionPagedSearchResponse } from '@commercetools/platform-sdk/dist/declarations/src/generated/models/product';
 
 const TypeMap = new Map<string, string>([
   ['boolean', FilterFieldTypes.BOOLEAN],
@@ -47,26 +49,28 @@ const TypeMap = new Map<string, string>([
 ]);
 
 export class ProductMapper {
-  static commercetoolsProductProjectionToProduct: (commercetoolsProduct: ProductProjection, locale: Locale) => Product =
-    (commercetoolsProduct: ProductProjection, locale: Locale) => {
-      const product: Product = {
-        productId: commercetoolsProduct.id,
-        version: commercetoolsProduct.version.toString(),
-        name: commercetoolsProduct.name[locale.language],
-        slug: commercetoolsProduct.slug[locale.language],
-        categories: ProductMapper.commercetoolsCategoryReferencesToCategories(commercetoolsProduct.categories, locale),
-        variants: ProductMapper.commercetoolsProductProjectionToVariants(commercetoolsProduct, locale),
-      };
-
-      product._url = ProductRouter.generateUrlFor(product);
-
-      return product;
+  static commercetoolsProductProjectionToProduct: (
+    commercetoolsProduct: CommercetoolsProductProjection,
+    locale: Locale,
+  ) => Product = (commercetoolsProduct: CommercetoolsProductProjection, locale: Locale) => {
+    const product: Product = {
+      productId: commercetoolsProduct.id,
+      version: commercetoolsProduct.version.toString(),
+      name: commercetoolsProduct.name[locale.language],
+      slug: commercetoolsProduct.slug[locale.language],
+      categories: ProductMapper.commercetoolsCategoryReferencesToCategories(commercetoolsProduct.categories, locale),
+      variants: ProductMapper.commercetoolsProductProjectionToVariants(commercetoolsProduct, locale),
     };
 
+    product._url = ProductRouter.generateUrlFor(product);
+
+    return product;
+  };
+
   static commercetoolsProductProjectionToVariants: (
-    commercetoolsProduct: ProductProjection,
+    commercetoolsProduct: CommercetoolsProductProjection,
     locale: Locale,
-  ) => Variant[] = (commercetoolsProduct: ProductProjection, locale: Locale) => {
+  ) => Variant[] = (commercetoolsProduct: CommercetoolsProductProjection, locale: Locale) => {
     const variants: Variant[] = [];
 
     if (commercetoolsProduct?.masterVariant) {
@@ -497,6 +501,14 @@ export class ProductMapper {
       rangeFacet.maxSelected = facetQuery.max;
     }
     return rangeFacet;
+  }
+
+  static calculatePreviousCursor(response: CommercetoolsProductProjectionPagedSearchResponse) {
+    return response.offset - response.count >= 0 ? `offset:${response.offset - response.count}` : undefined;
+  }
+
+  static calculateNextCursor(response: CommercetoolsProductProjectionPagedSearchResponse) {
+    return response.offset + response.count < response.total ? `offset:${response.offset + response.count}` : undefined;
   }
 
   private static findFacetQuery(productQuery: ProductQuery, facetKey: string) {
