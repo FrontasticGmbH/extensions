@@ -51,7 +51,6 @@ export class ProductMapper {
     commercetoolsProduct: CommercetoolsProductProjection,
     locale: Locale,
   ) => Product = (commercetoolsProduct: CommercetoolsProductProjection, locale: Locale) => {
-    console.log('commercetoolsProduct.description:: ', commercetoolsProduct.description);
     const product: Product = {
       productId: commercetoolsProduct.id,
       version: commercetoolsProduct?.version?.toString(),
