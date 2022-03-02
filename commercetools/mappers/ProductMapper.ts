@@ -51,11 +51,13 @@ export class ProductMapper {
     commercetoolsProduct: CommercetoolsProductProjection,
     locale: Locale,
   ) => Product = (commercetoolsProduct: CommercetoolsProductProjection, locale: Locale) => {
+    console.log('commercetoolsProduct.description:: ', commercetoolsProduct.description);
     const product: Product = {
       productId: commercetoolsProduct.id,
-      version: commercetoolsProduct.version.toString(),
-      name: commercetoolsProduct.name[locale.language],
-      slug: commercetoolsProduct.slug[locale.language],
+      version: commercetoolsProduct?.version?.toString(),
+      name: commercetoolsProduct?.name?.[locale.language],
+      slug: commercetoolsProduct?.slug?.[locale.language],
+      description: commercetoolsProduct?.description?.[locale.language],
       categories: ProductMapper.commercetoolsCategoryReferencesToCategories(commercetoolsProduct.categories, locale),
       variants: ProductMapper.commercetoolsProductProjectionToVariants(commercetoolsProduct, locale),
     };
