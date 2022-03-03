@@ -27,9 +27,9 @@ export const hasBillingAddress = (cart: Cart): boolean => {
 };
 
 export const hasAddresses = (cart: Cart): boolean => {
-  return this.hasShippingAddress(cart) && this.hasBillingAddress(cart);
+  return hasShippingAddress(cart) && hasBillingAddress(cart);
 };
 
 export const isReadyForCheckout = (cart: Cart): boolean => {
-  return this.hasUser(cart) && this.hasAddresses(cart);
+  return hasUser(cart) && hasAddresses(cart);
 };

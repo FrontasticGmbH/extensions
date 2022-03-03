@@ -20,9 +20,10 @@ export class ProductQueryFactory {
       skus: [],
     };
 
-    //Selected ID/SKUs filter from the studio
-    const productIds = config?.configuration?.productIds?.split(',').map((val: string) => val.trim()); //remove white spaces from IDs
-    const productSkus = config?.configuration?.productSkus?.split(',').map((val: string) => val.trim()); //remove white spaces from SKUs
+    // Selected ID/SKUs filter from the studio
+    const productIds = config?.configuration?.productIds?.split(',').map((val: string) => val.trim());
+    const productSkus = config?.configuration?.productSkus?.split(',').map((val: string) => val.trim());
+
     /**
      * Merge params
      */
@@ -37,7 +38,7 @@ export class ProductQueryFactory {
       };
     }
 
-    //Add SKUs and IDs if they are there
+    // Add SKUs and IDs if they are there
     if (productSkus && productSkus.length > 0) queryParams.skus = productSkus;
     if (productIds && productIds.length > 0) queryParams.productIds = productIds;
 
@@ -89,7 +90,6 @@ export class ProductQueryFactory {
      * Since filters and values might be returned in separated arrays we are using
      * the following method to merge both, filters and values, in a single array.
      */
-    //
     const configFiltersData = [];
     configFiltersData.push(...ProductQueryFactory.mergeProductFiltersAndValues(queryParams));
     configFiltersData.push(...ProductQueryFactory.mergeCategoryFiltersAndValues(queryParams));

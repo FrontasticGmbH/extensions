@@ -154,7 +154,6 @@ export class AccountApi extends BaseApi {
           return AccountMapper.commercetoolsCustomerToAccount(response.body.customer, locale);
         })
         .catch((error) => {
-          console.log('error:: ', error);
           if (error.code && error.code === 400) {
             if (error.body && error.body?.errors?.[0]?.code === 'InvalidCredentials') {
               throw new Error(`Invalid credentials to login with the account ${account.email}`);

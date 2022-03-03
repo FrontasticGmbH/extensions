@@ -36,7 +36,6 @@ export class ProductRouter {
       return productApi.getProduct(productQuery);
     }
 
-
     return null;
   };
 }
