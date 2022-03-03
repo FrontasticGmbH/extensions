@@ -335,12 +335,16 @@ export class ProductMapper {
     const filterFacets: string[] = [];
     const typeLookup: { [key: string]: string } = {};
 
+    if (facetDefinitions.length === 0) {
+      return filterFacets;
+    }
+
     facetDefinitions.forEach((facetDefinition) => {
       typeLookup[facetDefinition.attributeId] = facetDefinition.attributeType;
     });
 
     queryFacets.forEach((queryFacet) => {
-      if (!typeLookup.hasOwnProperty(queryFacet.identifier)) {
+      if (!typeLookup?.hasOwnProperty(queryFacet.identifier)) {
         return;
       }
 

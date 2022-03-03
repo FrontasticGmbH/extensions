@@ -26,9 +26,9 @@ import { Locale } from './Locale';
 import { Payment } from '../../types/cart/Payment';
 import {
   PaymentDraft,
-  PaymentUpdate,
   PaymentUpdateAction,
 } from '@commercetools/platform-sdk/dist/declarations/src/generated/models/payment';
+import { Account } from '../../types/account/Account';
 
 export class CartApi extends BaseApi {
   protected buildCartWithAvailableShippingMethods: (
@@ -50,7 +50,60 @@ export class CartApi extends BaseApi {
     return cart;
   };
 
-  getAnonymous: ($anonymousId: string) => Promise<Cart> = async (anonymousId: string) => {
+  getForUser: (account: Account) => Promise<Cart> = async (account: Account) => {
+    try {
+      const locale = await this.getCommercetoolsLocal();
+
+      const response = await this.getApiForProject()
+        .carts()
+        .get({
+          queryArgs: {
+            limit: 1,
+            expand: [
+              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
+              'discountCodes[*].discountCode',
+              'paymentInfo.payments[*]',
+            ],
+            customerId: account.accountId,
+          },
+        })
+        .execute();
+
+      console.log('response1:: ', response);
+
+      if (response.body.count >= 1) {
+        return this.buildCartWithAvailableShippingMethods(response.body.results[0], locale);
+      }
+
+      const cartDraft: CartDraft = {
+        currency: locale.currency,
+        country: locale.country,
+        locale: locale.language,
+        customerId: account.accountId,
+      };
+
+      const commercetoolsCart = await this.getApiForProject()
+        .carts()
+        .post({
+          queryArgs: {
+            expand: [
+              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
+              'discountCodes[*].discountCode',
+              'paymentInfo.payments[*]',
+            ],
+          },
+          body: cartDraft,
+        })
+        .execute();
+
+      return this.buildCartWithAvailableShippingMethods(commercetoolsCart.body, locale);
+    } catch (error) {
+      //TODO: better error, get status code etc...
+      throw new Error(`getForUser failed. ${error}`);
+    }
+  };
+
+  getAnonymous: (anonymousId: string) => Promise<Cart> = async (anonymousId: string) => {
     try {
       const locale = await this.getCommercetoolsLocal();
 
