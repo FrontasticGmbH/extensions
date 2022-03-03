@@ -3,6 +3,7 @@
 
     <property name="frontastic_basedir" value="${basedir}/../../.." />
     <property name="integration_dir" value="${frontastic_basedir}/paas/integration" />
+    <property name="copy-build-to-dist" value="true" />
 
     <!--
         Include local project properties.
@@ -21,5 +22,5 @@
         Enable used modules
     -->
     <import file="${integration_dir}/project-libraries.xml" />
-    
+
 </project>
