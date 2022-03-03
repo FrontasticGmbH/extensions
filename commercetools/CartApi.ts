@@ -8,7 +8,7 @@ import {
 } from '@commercetools/platform-sdk';
 import { CartMapper } from './mappers/CartMapper';
 import { LineItem } from '../../types/cart/LineItem';
-import { Cart as commercetoolsCart } from '@commercetools/platform-sdk';
+import { Cart as CommercetoolsCart } from '@commercetools/platform-sdk';
 import {
   CartAddLineItemAction,
   CartChangeLineItemQuantityAction,
@@ -31,25 +31,6 @@ import {
 import { Account } from '../../types/account/Account';
 
 export class CartApi extends BaseApi {
-  protected buildCartWithAvailableShippingMethods: (
-    commercetoolsCart: commercetoolsCart,
-    locale: Locale,
-  ) => Promise<Cart> = async (commercetoolsCart: commercetoolsCart, locale: Locale) => {
-    const cart = CartMapper.commercetoolsCartToCart(commercetoolsCart, locale);
-
-    try {
-      // It would not be possible to get available shipping method
-      // if the shipping address has not been set.
-      if (cart.shippingAddress !== undefined && cart.shippingAddress.country !== undefined) {
-        cart.availableShippingMethods = await this.getAvailableShippingMethods(cart);
-      }
-    } catch (error) {
-      throw new Error(`buildCartWithAvailableShippingMethods failed. ${error}`);
-    }
-
-    return cart;
-  };
-
   getForUser: (account: Account) => Promise<Cart> = async (account: Account) => {
     try {
       const locale = await this.getCommercetoolsLocal();
@@ -197,23 +178,7 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      const response = await this.getApiForProject()
-        .carts()
-        .withId({
-          ID: cart.cartId,
-        })
-        .post({
-          queryArgs: {
-            expand: [
-              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
-              'discountCodes[*].discountCode',
-              'paymentInfo.payments[*]',
-            ],
-          },
-          body: cartUpdate,
-        })
-        .execute();
-      return this.buildCartWithAvailableShippingMethods(response.body, locale);
+      return await this.updateCart(cart, cartUpdate, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`addToCart failed. ${error}`);
@@ -235,23 +200,7 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      const response = await this.getApiForProject()
-        .carts()
-        .withId({
-          ID: cart.cartId,
-        })
-        .post({
-          queryArgs: {
-            expand: [
-              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
-              'discountCodes[*].discountCode',
-              'paymentInfo.payments[*]',
-            ],
-          },
-          body: cartUpdate,
-        })
-        .execute();
-      return this.buildCartWithAvailableShippingMethods(response.body, locale);
+      return await this.updateCart(cart, cartUpdate, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`updateLineItem failed. ${error}`);
@@ -272,23 +221,7 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      const response = await this.getApiForProject()
-        .carts()
-        .withId({
-          ID: cart.cartId,
-        })
-        .post({
-          queryArgs: {
-            expand: [
-              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
-              'discountCodes[*].discountCode',
-              'paymentInfo.payments[*]',
-            ],
-          },
-          body: cartUpdate,
-        })
-        .execute();
-      return this.buildCartWithAvailableShippingMethods(response.body, locale);
+      return await this.updateCart(cart, cartUpdate, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`removeLineItem failed. ${error}`);
@@ -309,23 +242,7 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      const response = await this.getApiForProject()
-        .carts()
-        .withId({
-          ID: cart.cartId,
-        })
-        .post({
-          queryArgs: {
-            expand: [
-              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
-              'discountCodes[*].discountCode',
-              'paymentInfo.payments[*]',
-            ],
-          },
-          body: cartUpdate,
-        })
-        .execute();
-      return this.buildCartWithAvailableShippingMethods(response.body, locale);
+      return await this.updateCart(cart, cartUpdate, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`setEmail failed. ${error}`);
@@ -346,23 +263,7 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      const response = await this.getApiForProject()
-        .carts()
-        .withId({
-          ID: cart.cartId,
-        })
-        .post({
-          queryArgs: {
-            expand: [
-              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
-              'discountCodes[*].discountCode',
-              'paymentInfo.payments[*]',
-            ],
-          },
-          body: cartUpdate,
-        })
-        .execute();
-      return this.buildCartWithAvailableShippingMethods(response.body, locale);
+      return await this.updateCart(cart, cartUpdate, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`setShippingAddress failed. ${error}`);
@@ -383,23 +284,7 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      const response = await this.getApiForProject()
-        .carts()
-        .withId({
-          ID: cart.cartId,
-        })
-        .post({
-          queryArgs: {
-            expand: [
-              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
-              'discountCodes[*].discountCode',
-              'paymentInfo.payments[*]',
-            ],
-          },
-          body: cartUpdate,
-        })
-        .execute();
-      return this.buildCartWithAvailableShippingMethods(response.body, locale);
+      return await this.updateCart(cart, cartUpdate, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`setBillingAddress failed. ${error}`);
@@ -426,23 +311,7 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      const response = await this.getApiForProject()
-        .carts()
-        .withId({
-          ID: cart.cartId,
-        })
-        .post({
-          queryArgs: {
-            expand: [
-              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
-              'discountCodes[*].discountCode',
-              'paymentInfo.payments[*]',
-            ],
-          },
-          body: cartUpdate,
-        })
-        .execute();
-      return this.buildCartWithAvailableShippingMethods(response.body, locale);
+      return await this.updateCart(cart, cartUpdate, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`setShippingMethod failed. ${error}`);
@@ -577,23 +446,7 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      const response = await this.getApiForProject()
-        .carts()
-        .withId({
-          ID: cart.cartId,
-        })
-        .post({
-          queryArgs: {
-            expand: [
-              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
-              'discountCodes[*].discountCode',
-              'paymentInfo.payments[*]',
-            ],
-          },
-          body: cartUpdate,
-        })
-        .execute();
-      return this.buildCartWithAvailableShippingMethods(response.body, locale);
+      return await this.updateCart(cart, cartUpdate, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`addPayment failed. ${error}`);
@@ -655,5 +508,44 @@ export class CartApi extends BaseApi {
       //TODO: better error, get status code etc...
       throw new Error(`updatePayment failed. ${error}`);
     }
+  };
+
+  private async updateCart(cart: Cart, cartUpdate: CartUpdate, locale: Locale): Promise<Cart> {
+    const response = await this.getApiForProject()
+      .carts()
+      .withId({
+        ID: cart.cartId,
+      })
+      .post({
+        queryArgs: {
+          expand: [
+            'lineItems[*].discountedPrice.includedDiscounts[*].discount',
+            'discountCodes[*].discountCode',
+            'paymentInfo.payments[*]',
+          ],
+        },
+        body: cartUpdate,
+      })
+      .execute();
+    return this.buildCartWithAvailableShippingMethods(response.body, locale);
+  }
+
+  private buildCartWithAvailableShippingMethods: (
+    commercetoolsCart: CommercetoolsCart,
+    locale: Locale,
+  ) => Promise<Cart> = async (commercetoolsCart: CommercetoolsCart, locale: Locale) => {
+    const cart = CartMapper.commercetoolsCartToCart(commercetoolsCart, locale);
+
+    try {
+      // It would not be possible to get available shipping method
+      // if the shipping address has not been set.
+      if (cart.shippingAddress !== undefined && cart.shippingAddress.country !== undefined) {
+        cart.availableShippingMethods = await this.getAvailableShippingMethods(cart);
+      }
+    } catch (error) {
+      throw new Error(`buildCartWithAvailableShippingMethods failed. ${error}`);
+    }
+
+    return cart;
   };
 }
