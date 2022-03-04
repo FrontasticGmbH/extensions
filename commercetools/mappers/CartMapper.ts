@@ -1,13 +1,17 @@
 import { Cart } from '../../../types/cart/Cart';
 import {
-  Cart as commercetoolsCart,
-  LineItem as CommercetoolsLineItem,
   BaseAddress as CommercetoolsAddress,
+  Cart as CommercetoolsCart,
+  DiscountCodeInfo as CommercetoolsDiscountCodeInfo,
+  DiscountedLineItemPriceForQuantity as CommercetoolsDiscountedLineItemPriceForQuantity,
+  DiscountedLineItemPortion as CommercetoolsDiscountedLineItemPortion,
+  LineItem as CommercetoolsLineItem,
   Order as CommercetoolsOrder,
   Payment as CommercetoolsPayment,
   PaymentInfo as CommercetoolsPaymentInfo,
   ShippingInfo as CommercetoolsShippingInfo,
   ShippingMethod as CommercetoolsShippingMethod,
+  TaxedPrice as CommercetoolsTaxedPrice,
   ZoneRate as CommercetoolsZoneRate,
 } from '@commercetools/platform-sdk';
 import { LineItem } from '../../../types/cart/LineItem';
@@ -21,10 +25,13 @@ import { ProductRouter } from '../../utils/ProductRouter';
 import { ProductMapper } from './ProductMapper';
 import { ShippingInfo } from '../../../types/cart/ShippingInfo';
 import { Payment } from '../../../types/cart/Payment';
+import { Tax } from '../../../types/cart/Tax';
+import { TaxPortion } from '../../../types/cart/TaxPortion';
+import { Discount } from '../../../types/cart/Discount';
 
 export class CartMapper {
-  static commercetoolsCartToCart: (commercetoolsCart: commercetoolsCart, locale: Locale) => Cart = (
-    commercetoolsCart: commercetoolsCart,
+  static commercetoolsCartToCart: (commercetoolsCart: CommercetoolsCart, locale: Locale) => Cart = (
+    commercetoolsCart: CommercetoolsCart,
     locale: Locale,
   ) => {
     return {
@@ -37,8 +44,8 @@ export class CartMapper {
       billingAddress: CartMapper.commercetoolsAddressToAddress(commercetoolsCart.billingAddress),
       shippingInfo: CartMapper.commercetoolsShippingInfoToShippingInfo(commercetoolsCart.shippingInfo, locale),
       payments: CartMapper.commercetoolsPaymentInfoToPayments(commercetoolsCart.paymentInfo, locale),
-      // discountCodes:
-      // taxed:
+      discountCodes: CartMapper.commercetoolsDiscountCodesInfoToDiscountCodes(commercetoolsCart.discountCodes, locale),
+      taxed: CartMapper.commercetoolsTaxedPriceToTaxed(commercetoolsCart.taxedPrice, locale),
     };
   };
 
@@ -56,8 +63,14 @@ export class CartMapper {
         count: commercetoolsLineItem.quantity,
         price: ProductMapper.commercetoolsMoneyToMoney(commercetoolsLineItem.price?.value),
         discountedPrice: ProductMapper.commercetoolsMoneyToMoney(commercetoolsLineItem.price?.discounted?.value),
-        // discountTexts:
-        // discounts:
+        discountTexts: CartMapper.commercetoolsDiscountedPricesPerQuantityToDiscountTexts(
+          commercetoolsLineItem.discountedPricePerQuantity,
+          locale,
+        ),
+        discounts: CartMapper.commercetoolsDiscountedPricesPerQuantityToDiscounts(
+          commercetoolsLineItem.discountedPricePerQuantity,
+          locale,
+        ),
         totalPrice: ProductMapper.commercetoolsMoneyToMoney(commercetoolsLineItem.totalPrice),
         variant: ProductMapper.commercetoolsProductVariantToVariant(commercetoolsLineItem.variant, locale),
         isGift:
@@ -235,13 +248,134 @@ export class CartMapper {
       paymentId: commercetoolsPayment.interfaceId ?? null,
       paymentProvider: commercetoolsPayment.paymentMethodInfo.paymentInterface ?? null,
       paymentMethod: commercetoolsPayment.paymentMethodInfo.method ?? null,
-      amountPlanned: {
-        centAmount: commercetoolsPayment.amountPlanned.centAmount ?? null,
-        currencyCode: commercetoolsPayment.amountPlanned.currencyCode ?? null,
-      },
+      amountPlanned: ProductMapper.commercetoolsMoneyToMoney(commercetoolsPayment.amountPlanned),
       debug: JSON.stringify(commercetoolsPayment),
       paymentStatus: commercetoolsPayment.paymentStatus.interfaceCode ?? null,
       version: commercetoolsPayment.version ?? 0,
+    };
+  };
+
+  static commercetoolsDiscountCodesInfoToDiscountCodes: (
+    commercetoolsDiscountCodesInfo: CommercetoolsDiscountCodeInfo[] | undefined,
+    locale: Locale,
+  ) => Discount[] = (commercetoolsDiscountCodesInfo: CommercetoolsDiscountCodeInfo[] | undefined, locale: Locale) => {
+    const discounts: Discount[] = [];
+
+    commercetoolsDiscountCodesInfo?.forEach((commercetoolsDiscountCodeInfo) => {
+      discounts.push(CartMapper.commercetoolsDiscountCodeInfoToDiscountCode(commercetoolsDiscountCodeInfo, locale));
+    });
+
+    return discounts;
+  };
+
+  static commercetoolsDiscountCodeInfoToDiscountCode: (
+    commercetoolsDiscountCodeInfo: CommercetoolsDiscountCodeInfo,
+    locale: Locale,
+  ) => Discount = (commercetoolsDiscountCodeInfo: CommercetoolsDiscountCodeInfo, locale: Locale) => {
+    let discount: Discount = {
+      state: commercetoolsDiscountCodeInfo.state,
+    };
+
+    if (commercetoolsDiscountCodeInfo.discountCode.obj) {
+      const commercetoolsDiscountCode = commercetoolsDiscountCodeInfo.discountCode.obj;
+
+      discount = {
+        ...discount,
+        discountId: commercetoolsDiscountCode.id,
+        code: commercetoolsDiscountCode.code,
+        name: commercetoolsDiscountCode.name[locale.language] ?? undefined,
+        description: commercetoolsDiscountCode.description[locale.language] ?? undefined,
+      };
+    }
+
+    return discount;
+  };
+
+  static commercetoolsDiscountedPricesPerQuantityToDiscountTexts: (
+    commercetoolsDiscountedLineItemPricesForQuantity: CommercetoolsDiscountedLineItemPriceForQuantity[] | undefined,
+    locale: Locale,
+  ) => string[] = (
+    commercetoolsDiscountedLineItemPricesForQuantity: CommercetoolsDiscountedLineItemPriceForQuantity[] | undefined,
+    locale: Locale,
+  ) => {
+    const discountTexts: string[] = [];
+
+    commercetoolsDiscountedLineItemPricesForQuantity?.forEach((commercetoolsDiscountedLineItemPriceForQuantity) => {
+      commercetoolsDiscountedLineItemPriceForQuantity.discountedPrice.includedDiscounts.forEach(
+        (commercetoolsDiscountedLineItemPortion) => {
+          discountTexts.push(commercetoolsDiscountedLineItemPortion.discount.obj?.name[locale.language]);
+        },
+      );
+    });
+
+    return discountTexts;
+  };
+
+  static commercetoolsDiscountedPricesPerQuantityToDiscounts: (
+    commercetoolsDiscountedLineItemPricesForQuantity: CommercetoolsDiscountedLineItemPriceForQuantity[] | undefined,
+    locale: Locale,
+  ) => Discount[] = (
+    commercetoolsDiscountedLineItemPricesForQuantity: CommercetoolsDiscountedLineItemPriceForQuantity[] | undefined,
+    locale: Locale,
+  ) => {
+    const discounts: Discount[] = [];
+
+    commercetoolsDiscountedLineItemPricesForQuantity?.forEach((commercetoolsDiscountedLineItemPriceForQuantity) => {
+      commercetoolsDiscountedLineItemPriceForQuantity.discountedPrice.includedDiscounts.forEach(
+        (commercetoolsDiscountedLineItemPortion) => {
+          discounts.push(
+            CartMapper.commercetoolsDiscountedLineItemPortionToDiscount(commercetoolsDiscountedLineItemPortion, locale),
+          );
+        },
+      );
+    });
+
+    return discounts;
+  };
+
+  static commercetoolsDiscountedLineItemPortionToDiscount: (
+    commercetoolsDiscountedLineItemPortion: CommercetoolsDiscountedLineItemPortion,
+    locale: Locale,
+  ) => Discount = (commercetoolsDiscountedLineItemPortion: CommercetoolsDiscountedLineItemPortion, locale: Locale) => {
+    let discount: Discount = {
+      discountedAmount: ProductMapper.commercetoolsMoneyToMoney(
+        commercetoolsDiscountedLineItemPortion.discountedAmount,
+      ),
+    };
+
+    if (commercetoolsDiscountedLineItemPortion.discount.obj) {
+      const commercetoolsCartDiscount = commercetoolsDiscountedLineItemPortion.discount.obj;
+
+      discount = {
+        ...discount,
+        discountId: commercetoolsCartDiscount.id,
+        name: commercetoolsCartDiscount.name[locale.language] ?? undefined,
+        description: commercetoolsCartDiscount.description[locale.language] ?? undefined,
+      };
+    }
+
+    return discount;
+  };
+
+  static commercetoolsTaxedPriceToTaxed: (
+    commercetoolsTaxedPrice: CommercetoolsTaxedPrice | undefined,
+    locale: Locale,
+  ) => Tax | undefined = (commercetoolsTaxedPrice: CommercetoolsTaxedPrice | undefined, locale: Locale) => {
+    if (commercetoolsTaxedPrice === undefined) {
+      return undefined;
+    }
+
+    return {
+      amount: ProductMapper.commercetoolsMoneyToMoney(commercetoolsTaxedPrice.totalNet),
+      taxPortions: commercetoolsTaxedPrice.taxPortions.map((commercetoolsTaxPortion) => {
+        const taxPortion: TaxPortion = {
+          amount: ProductMapper.commercetoolsMoneyToMoney(commercetoolsTaxPortion.amount),
+          name: commercetoolsTaxPortion.name,
+          rate: commercetoolsTaxPortion.rate,
+        };
+
+        return taxPortion;
+      }),
     };
   };
 }
