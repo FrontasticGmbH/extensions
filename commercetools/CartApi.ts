@@ -3,6 +3,7 @@ import {
   CartAddPaymentAction,
   CartDraft,
   CartSetBillingAddressAction,
+  CartSetLocaleAction,
   CartSetShippingAddressAction,
   CartSetShippingMethodAction,
 } from '@commercetools/platform-sdk';
@@ -13,6 +14,7 @@ import {
   CartAddLineItemAction,
   CartChangeLineItemQuantityAction,
   CartRemoveLineItemAction,
+  CartSetCountryAction,
   CartSetCustomerEmailAction,
   CartUpdate,
 } from '@commercetools/platform-sdk/dist/declarations/src/generated/models/cart';
@@ -49,8 +51,6 @@ export class CartApi extends BaseApi {
           },
         })
         .execute();
-
-      console.log('response1:: ', response);
 
       if (response.body.count >= 1) {
         return this.buildCartWithAvailableShippingMethods(response.body.results[0], locale);
@@ -178,7 +178,9 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      return await this.updateCart(cart, cartUpdate, locale);
+      const commercetoolsCart = await this.updateCart(cart.cartId, cartUpdate, locale);
+
+      return this.buildCartWithAvailableShippingMethods(commercetoolsCart, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`addToCart failed. ${error}`);
@@ -200,7 +202,9 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      return await this.updateCart(cart, cartUpdate, locale);
+      const commercetoolsCart = await this.updateCart(cart.cartId, cartUpdate, locale);
+
+      return this.buildCartWithAvailableShippingMethods(commercetoolsCart, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`updateLineItem failed. ${error}`);
@@ -221,7 +225,9 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      return await this.updateCart(cart, cartUpdate, locale);
+      const commercetoolsCart = await this.updateCart(cart.cartId, cartUpdate, locale);
+
+      return this.buildCartWithAvailableShippingMethods(commercetoolsCart, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`removeLineItem failed. ${error}`);
@@ -242,7 +248,9 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      return await this.updateCart(cart, cartUpdate, locale);
+      const commercetoolsCart = await this.updateCart(cart.cartId, cartUpdate, locale);
+
+      return this.buildCartWithAvailableShippingMethods(commercetoolsCart, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`setEmail failed. ${error}`);
@@ -263,7 +271,9 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      return await this.updateCart(cart, cartUpdate, locale);
+      const commercetoolsCart = await this.updateCart(cart.cartId, cartUpdate, locale);
+
+      return this.buildCartWithAvailableShippingMethods(commercetoolsCart, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`setShippingAddress failed. ${error}`);
@@ -284,7 +294,9 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      return await this.updateCart(cart, cartUpdate, locale);
+      const commercetoolsCart = await this.updateCart(cart.cartId, cartUpdate, locale);
+
+      return this.buildCartWithAvailableShippingMethods(commercetoolsCart, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`setBillingAddress failed. ${error}`);
@@ -311,7 +323,9 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      return await this.updateCart(cart, cartUpdate, locale);
+      const commercetoolsCart = await this.updateCart(cart.cartId, cartUpdate, locale);
+
+      return this.buildCartWithAvailableShippingMethods(commercetoolsCart, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`setShippingMethod failed. ${error}`);
@@ -446,7 +460,9 @@ export class CartApi extends BaseApi {
         ],
       };
 
-      return await this.updateCart(cart, cartUpdate, locale);
+      const commercetoolsCart = await this.updateCart(cart.cartId, cartUpdate, locale);
+
+      return this.buildCartWithAvailableShippingMethods(commercetoolsCart, locale);
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`addPayment failed. ${error}`);
@@ -510,11 +526,11 @@ export class CartApi extends BaseApi {
     }
   };
 
-  private async updateCart(cart: Cart, cartUpdate: CartUpdate, locale: Locale): Promise<Cart> {
-    const response = await this.getApiForProject()
+  private async updateCart(cartId: string, cartUpdate: CartUpdate, locale: Locale): Promise<CommercetoolsCart> {
+    return await this.getApiForProject()
       .carts()
       .withId({
-        ID: cart.cartId,
+        ID: cartId,
       })
       .post({
         queryArgs: {
@@ -526,15 +542,17 @@ export class CartApi extends BaseApi {
         },
         body: cartUpdate,
       })
-      .execute();
-    return this.buildCartWithAvailableShippingMethods(response.body, locale);
+      .execute()
+      .then((response) => {
+        return response.body;
+      });
   }
 
   private buildCartWithAvailableShippingMethods: (
     commercetoolsCart: CommercetoolsCart,
     locale: Locale,
   ) => Promise<Cart> = async (commercetoolsCart: CommercetoolsCart, locale: Locale) => {
-    const cart = CartMapper.commercetoolsCartToCart(commercetoolsCart, locale);
+    const cart = await this.assertCorrectLocale(commercetoolsCart, locale);
 
     try {
       // It would not be possible to get available shipping method
@@ -547,5 +565,152 @@ export class CartApi extends BaseApi {
     }
 
     return cart;
+  };
+
+  private assertCorrectLocale: (commercetoolsCart: CommercetoolsCart, locale: Locale) => Promise<Cart> = async (
+    commercetoolsCart: CommercetoolsCart,
+    locale: Locale,
+  ) => {
+    if (commercetoolsCart.totalPrice.currencyCode !== locale.currency.toLocaleUpperCase()) {
+      return this.recreate(commercetoolsCart, locale);
+    }
+
+    if (this.doesCartNeedLocaleUpdate(commercetoolsCart, locale)) {
+      const cartUpdate: CartUpdate = {
+        version: commercetoolsCart.version,
+        actions: [
+          {
+            action: 'setCountry',
+            country: locale.country,
+          } as CartSetCountryAction,
+          {
+            action: 'setLocale',
+            country: locale.language,
+          } as CartSetLocaleAction,
+        ],
+      };
+
+      commercetoolsCart = await this.updateCart(commercetoolsCart.id, cartUpdate, locale);
+
+      return CartMapper.commercetoolsCartToCart(commercetoolsCart, locale);
+    }
+
+    return CartMapper.commercetoolsCartToCart(commercetoolsCart, locale);
+  };
+
+  private recreate: (primaryCommercetoolsCart: CommercetoolsCart, locale: Locale) => Promise<Cart> = async (
+    primaryCommercetoolsCart: CommercetoolsCart,
+    locale: Locale,
+  ) => {
+    const primaryCartId = primaryCommercetoolsCart.id;
+    const cartVersion = primaryCommercetoolsCart.version;
+    const lineItems = primaryCommercetoolsCart.lineItems;
+
+    const cartDraft: CartDraft = {
+      currency: locale.currency,
+      country: locale.country,
+      locale: locale.language,
+    };
+
+    // TODO: implement a logic that hydrate cartDraft with commercetoolsCart
+    // for (const key of Object.keys(commercetoolsCart)) {
+    //   if (cartDraft.hasOwnProperty(key) && cartDraft[key] !== undefined) {
+    //     cartDraft[key] = commercetoolsCart[key];
+    //   }
+    // }
+
+    const propertyList = [
+      'customerId',
+      'customerEmail',
+      'customerGroup',
+      'anonymousId',
+      'store',
+      'inventoryMode',
+      'taxMode',
+      'taxRoundingMode',
+      'taxCalculationMode',
+      'shippingAddress',
+      'billingAddress',
+      'shippingMethod',
+      'externalTaxRateForShippingMethod',
+      'deleteDaysAfterLastModification',
+      'origin',
+      'shippingRateInput',
+      'itemShippingAddresses',
+    ];
+
+    for (const key of propertyList) {
+      if (primaryCommercetoolsCart.hasOwnProperty(key)) {
+        cartDraft[key] = primaryCommercetoolsCart[key];
+      }
+    }
+
+    let replicatedCommercetoolsCart = await this.getApiForProject()
+      .carts()
+      .post({
+        queryArgs: {
+          expand: [
+            'lineItems[*].discountedPrice.includedDiscounts[*].discount',
+            'discountCodes[*].discountCode',
+            'paymentInfo.payments[*]',
+          ],
+        },
+        body: cartDraft,
+      })
+      .execute()
+      .then((response) => {
+        return response.body;
+      });
+
+    // Add line items to the replicated cart one by one to handle the exception
+    // if an item is not available on the new currency.
+    for (const lineItem of lineItems) {
+      try {
+        const cartUpdate: CartUpdate = {
+          version: +replicatedCommercetoolsCart.version,
+          actions: [
+            {
+              action: 'addLineItem',
+              sku: lineItem.variant.sku,
+              quantity: +lineItem.quantity,
+            },
+          ],
+        };
+
+        replicatedCommercetoolsCart = await this.updateCart(replicatedCommercetoolsCart.id, cartUpdate, locale);
+      } catch (error) {
+        // Ignore that a line item could not be added due to missing price, etc
+      }
+    }
+
+    // Delete previous cart
+    await this.getApiForProject()
+      .carts()
+      .withId({
+        ID: primaryCartId,
+      })
+      .delete({
+        queryArgs: {
+          version: cartVersion,
+        },
+      })
+      .execute();
+
+    return CartMapper.commercetoolsCartToCart(replicatedCommercetoolsCart, locale);
+  };
+
+  private doesCartNeedLocaleUpdate: (commercetoolsCart: CommercetoolsCart, locale: Locale) => boolean = (
+    commercetoolsCart: CommercetoolsCart,
+    locale: Locale,
+  ) => {
+    if (commercetoolsCart.country === undefined) {
+      return true;
+    }
+
+    if (commercetoolsCart.locale === undefined) {
+      return true;
+    }
+
+    return commercetoolsCart.country !== locale.country || commercetoolsCart.locale !== locale.language;
   };
 }
