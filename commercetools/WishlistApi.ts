@@ -29,6 +29,47 @@ export class WishlistApi extends BaseApi {
     }
   };
 
+  getForAccount = async (accountId: string) => {
+    try {
+      const locale = await this.getCommercetoolsLocal();
+      const response = await this.getApiForProject()
+        .shoppingLists()
+        .get({
+          queryArgs: {
+            where: `customer(id="${accountId}")`,
+            expand: expandVariants,
+          },
+        })
+        .execute();
+
+      return response.body.results.map((shoppingList) =>
+        WishlistMapper.commercetoolsShoppingListToWishlist(shoppingList, locale),
+      );
+    } catch (error) {
+      throw new Error(`Get wishlist for account failed: ${error}`);
+    }
+  };
+
+  getByIdForAccount = async (wishlistId: string, accountId: string) => {
+    try {
+      const locale = await this.getCommercetoolsLocal();
+      const response = await this.getApiForProject()
+        .shoppingLists()
+        .withId({ ID: wishlistId })
+        .get({
+          queryArgs: {
+            where: `customer(id="${accountId}")`,
+            expand: expandVariants,
+          },
+        })
+        .execute();
+
+      return WishlistMapper.commercetoolsShoppingListToWishlist(response.body, locale);
+    } catch (error) {
+      throw new Error(`Get wishlist by ID failed: ${error}`);
+    }
+  };
+
   create = async (wishlist: Omit<Wishlist, 'wishlistId'>) => {
     try {
       const locale = await this.getCommercetoolsLocal();
@@ -105,6 +146,36 @@ export class WishlistApi extends BaseApi {
       return WishlistMapper.commercetoolsShoppingListToWishlist(response.body, locale);
     } catch (error) {
       throw new Error(`Add to wishlist failed: ${error}`);
+    }
+  };
+
+  updateLineItemCount = async (wishlist: Wishlist, lineItemId: string, count: number) => {
+    try {
+      const locale = await this.getCommercetoolsLocal();
+
+      const response = await this.getApiForProject()
+        .shoppingLists()
+        .withId({ ID: wishlist.wishlistId })
+        .post({
+          body: {
+            version: +wishlist.wishlistVersion,
+            actions: [
+              {
+                action: 'changeLineItemQuantity',
+                lineItemId,
+                quantity: count,
+              },
+            ],
+          },
+          queryArgs: {
+            expand: expandVariants,
+          },
+        })
+        .execute();
+
+      return WishlistMapper.commercetoolsShoppingListToWishlist(response.body, locale);
+    } catch (error) {
+      throw new Error(`Update line item count: ${error}`);
     }
   };
 }
