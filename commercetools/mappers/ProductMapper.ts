@@ -7,7 +7,7 @@ import {
   Money as CommercetoolsMoney,
   ProductProjection as CommercetoolsProductProjection,
   ProductType as CommercetoolsProductType,
-  ProductVariant,
+  ProductVariant as CommercetoolsProductVariant,
   RangeFacetResult as CommercetoolsRangeFacetResult,
   TermFacetResult as CommercetoolsTermFacetResult,
   TypedMoney,
@@ -83,23 +83,22 @@ export class ProductMapper {
     return variants;
   };
 
-  static commercetoolsProductVariantToVariant: (commercetoolsVariant: ProductVariant, locale: Locale) => Variant = (
-    commercetoolsVariant: ProductVariant,
+  static commercetoolsProductVariantToVariant: (
+    commercetoolsVariant: CommercetoolsProductVariant,
     locale: Locale,
-  ) => {
+  ) => Variant = (commercetoolsVariant: CommercetoolsProductVariant, locale: Locale) => {
     const attributes = ProductMapper.commercetoolsAttributesToAttributes(commercetoolsVariant.attributes, locale);
-    const { price, discountedPrice } = ProductMapper.extractPriceAndDiscountedPrice(commercetoolsVariant);
+    const { price, discountedPrice, discounts } = ProductMapper.extractPriceAndDiscounts(commercetoolsVariant, locale);
 
     return {
       id: commercetoolsVariant.id.toString(),
       sku: commercetoolsVariant.sku.toString(),
-      // TODO: should we also include attribute assets as images
       images: commercetoolsVariant.images.map((image) => image.url),
       groupId: attributes?.baseId || undefined,
       attributes: attributes,
       price: price,
       discountedPrice: discountedPrice,
-      // discounts?: string[]; // TODO: implement discounts mapping
+      discounts: discounts,
     } as Variant;
   };
 
@@ -160,7 +159,6 @@ export class ProductMapper {
     };
   };
 
-  // TODO: fix param type so we can remove ts-ignore tag
   static extractAttributeValue(commercetoolsAttributeValue: unknown, locale: Locale): unknown {
     if (commercetoolsAttributeValue['key'] !== undefined && commercetoolsAttributeValue['label'] !== undefined) {
       return {
@@ -176,25 +174,28 @@ export class ProductMapper {
     return commercetoolsAttributeValue[locale.language] || commercetoolsAttributeValue;
   }
 
-  static extractPriceAndDiscountedPrice(commercetoolsVariant: ProductVariant) {
+  static extractPriceAndDiscounts(commercetoolsVariant: CommercetoolsProductVariant, locale: Locale) {
     let price: Money = undefined;
     let discountedPrice: Money = undefined;
+    let discounts: string[] = undefined;
 
     if (commercetoolsVariant?.scopedPrice) {
       price = ProductMapper.commercetoolsMoneyToMoney(commercetoolsVariant.scopedPrice?.value);
       discountedPrice = ProductMapper.commercetoolsMoneyToMoney(commercetoolsVariant.scopedPrice?.discounted?.value);
+      discounts = [commercetoolsVariant.scopedPrice?.discounted?.discount?.obj?.description[locale.language]];
 
-      return { price, discountedPrice };
+      return { price, discountedPrice, discounts };
     }
 
     if (commercetoolsVariant?.price) {
       price = ProductMapper.commercetoolsMoneyToMoney(commercetoolsVariant.price?.value);
       discountedPrice = ProductMapper.commercetoolsMoneyToMoney(commercetoolsVariant.price?.discounted?.value);
+      discounts = [commercetoolsVariant.price?.discounted?.discount?.obj?.description[locale.language]];
 
-      return { price, discountedPrice };
+      return { price, discountedPrice, discounts };
     }
 
-    return { price, discountedPrice };
+    return { price, discountedPrice, discounts };
   }
 
   static commercetoolsMoneyToMoney(commercetoolsMoney: CommercetoolsMoney | TypedMoney): Money {
