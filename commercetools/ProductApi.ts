@@ -166,8 +166,6 @@ export class ProductApi extends BaseApi {
         }),
       });
 
-      // TODO: should we include `Product.ProductTypes` as searchable attribute?
-
       return filterFields;
     } catch (error) {
       //TODO: better error, get status code etc...

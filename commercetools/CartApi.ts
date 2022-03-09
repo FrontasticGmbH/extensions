@@ -31,6 +31,7 @@ import {
   PaymentUpdateAction,
 } from '@commercetools/platform-sdk/dist/declarations/src/generated/models/payment';
 import { Account } from '../../types/account/Account';
+import { isReadyForCheckout } from '../utils/Cart';
 
 export class CartApi extends BaseApi {
   getForUser: (account: Account) => Promise<Cart> = async (account: Account) => {
@@ -342,7 +343,10 @@ export class CartApi extends BaseApi {
         orderNumber: Guid.newGuid(),
       };
 
-      // TODO: validate if cart is ready for checkout.
+      if (!isReadyForCheckout(cart)) {
+        throw new Error('Cart not complete yet.');
+      }
+
       const response = await this.getApiForProject()
         .orders()
         .post({
