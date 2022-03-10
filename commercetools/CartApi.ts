@@ -62,6 +62,7 @@ export class CartApi extends BaseApi {
         country: locale.country,
         locale: locale.language,
         customerId: account.accountId,
+        inventoryMode: 'ReserveOnOrder',
       };
 
       const commercetoolsCart = await this.getApiForProject()
@@ -113,6 +114,7 @@ export class CartApi extends BaseApi {
         country: locale.country,
         locale: locale.language,
         anonymousId: anonymousId,
+        inventoryMode: 'ReserveOnOrder',
       };
 
       const commercetoolsCart = await this.getApiForProject()
