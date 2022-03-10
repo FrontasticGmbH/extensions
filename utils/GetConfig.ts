@@ -7,11 +7,10 @@ export const getConfig = (project: Project, engine: string, locale: string | nul
   }
 
   return {
-    baseURL: project.configuration?.[engine].baseUrl,
-    authBaseURL: project.configuration?.[engine].authBaseUrl,
-    authURL: project.configuration?.[engine].authUrl,
+    authUrl: project.configuration?.[engine].authUrl,
     clientId: project.configuration?.[engine].clientId,
     clientSecret: project.configuration?.[engine].clientSecret,
+    hostUrl: project.configuration?.[engine].hostUrl,
     projectKey: project.configuration?.[engine].projectKey,
   } as ClientConfig;
 };

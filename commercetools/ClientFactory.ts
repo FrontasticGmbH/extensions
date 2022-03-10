@@ -9,19 +9,18 @@ export class ClientFactory {
     environment: string | undefined,
   ) => {
     const authMiddlewareOptions: AuthMiddlewareOptions = {
-      host: clientConfig.authBaseURL,
+      host: clientConfig.authUrl,
       projectKey: clientConfig.projectKey,
       credentials: {
         clientId: clientConfig.clientId,
         clientSecret: clientConfig.clientSecret,
       },
-      oauthUri: clientConfig.authURL,
-      // scopes: ['manage_project:' + projectKey],
+      // scopes: ['manage_project:' + clientConfig.projectKey],
       fetch,
     };
 
     const httpMiddlewareOptions: HttpMiddlewareOptions = {
-      host: clientConfig.baseURL,
+      host: clientConfig.hostUrl,
       fetch,
     };
 

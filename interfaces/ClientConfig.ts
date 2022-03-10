@@ -1,9 +1,8 @@
 // Add more as required for versatility of Api
 export interface ClientConfig {
-  baseURL: string;
-  authBaseURL: string;
-  authURL: string;
+  authUrl: string;
   clientId: string;
   clientSecret: string;
+  hostUrl: string;
   projectKey: string;
 }
