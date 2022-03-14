@@ -72,7 +72,7 @@ export class AccountApi extends BaseApi {
              * The cart might already belong to another user, so we try to create tje account without the cart.
              */
             if (cart) {
-              this.create(account, undefined);
+              return this.create(account, undefined);
             }
           }
 
