@@ -190,6 +190,7 @@ export const login: ActionHook = async (request: Request, actionContext: ActionC
 export const logout: ActionHook = async (request: Request, actionContext: ActionContext) => {
   return {
     statusCode: 200,
+    body: JSON.stringify({}),
     sessionData: {
       ...request.sessionData,
       account: undefined,
