@@ -97,13 +97,23 @@ function mapRequestToAccount(request: Request): Account {
 }
 
 export const getAccount: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  assertIsAuthenticated(request);
-
   const account = fetchAccountFromSession(request);
+
+  if (account === undefined) {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        loggedIn: false,
+      }),
+    };
+  }
 
   const response: Response = {
     statusCode: 200,
-    body: JSON.stringify(account),
+    body: JSON.stringify({
+      loggedIn: true,
+      account,
+    }),
     sessionData: {
       ...request.sessionData,
       account: account,
@@ -190,6 +200,7 @@ export const login: ActionHook = async (request: Request, actionContext: ActionC
 export const logout: ActionHook = async (request: Request, actionContext: ActionContext) => {
   return {
     statusCode: 200,
+    body: JSON.stringify({}),
     sessionData: {
       ...request.sessionData,
       account: undefined,

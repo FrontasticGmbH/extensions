@@ -11,13 +11,14 @@
         "ts-compile": "tsc",
         "ts-watch": "tsc -watch --noEmit",
         "lint": "eslint .",
-        "lint:fix": "eslint --fix ."
+        "lint:fix": "eslint --fix .",
+        "test": "jest"
     },
     "dependencies": {
         "@babel/runtime": "^7.16.5",
         "@commercetools/platform-sdk": "^1.20.0",
         "@commercetools/sdk-client-v2": "^0.2.0",
-        "@types/jest": "^27.0.3",
+        "@types/jest": "^27.4.1",
         "axios": "^0.24.0",
         "core-js": "^3.20.0",
         "qs": "^6.10.1",
@@ -42,8 +43,9 @@
         "eslint-plugin-prettier": "^4.0.0",
         "eslint-plugin-react": "^7.26.1",
         "eslint-plugin-react-hooks": "^4.2.0",
-        "jest": "^27.4.5",
+        "jest": "^27.5.1",
         "prettier": "^2.4.1",
+        "ts-jest": "^27.1.3",
         "ts-loader": "^7.0.5",
         "webpack": "4.41.2",
         "webpack-cli": "^3.3.10",
