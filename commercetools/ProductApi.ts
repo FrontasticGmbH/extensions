@@ -179,12 +179,21 @@ export class ProductApi extends BaseApi {
 
       // TODO: get default from constant
       const limit = +categoryQuery.limit || 24;
+      const where: string[] = [];
+
+      if (categoryQuery.slug) {
+        where.push(`slug(${locale.language}="${categoryQuery.slug}")`);
+      }
+
+      if (categoryQuery.parentId) {
+        where.push(`parent(id="${categoryQuery.parentId}")`);
+      }
 
       const methodArgs = {
         queryArgs: {
           limit: limit,
           offset: this.getOffsetFromCursor(categoryQuery.cursor),
-          where: categoryQuery.slug ? `slug(${locale.language}="${categoryQuery.slug}")` : undefined,
+          where: where.length > 0 ? where : undefined,
         },
       };
 
