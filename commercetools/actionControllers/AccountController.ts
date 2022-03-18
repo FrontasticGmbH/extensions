@@ -253,7 +253,7 @@ export const requestReset: ActionHook = async (request: Request, actionContext: 
   // TODO: send email to user with token info
   return {
     statusCode: 200,
-    body: JSON.stringify(passwordResetToken),
+    body: JSON.stringify({}),
     sessionData: {
       ...request.sessionData,
       // TODO: should we redirect to logout rather to unset the account?

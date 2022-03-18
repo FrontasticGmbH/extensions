@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Commercetools extension" basedir="./" default="test">
+<project name="API Hub extensions" basedir="./" default="test">
 
     <property name="frontastic_basedir" value="${basedir}/../../.." />
     <property name="integration_dir" value="${frontastic_basedir}/paas/integration" />
@@ -76,4 +76,11 @@
         </retry>
     </target>
 
+    <retry retrycount="3" retrydelay="1000">
+        <exec executable="git" failonerror="false" dir="${basedir}/dist">
+            <arg value="add" />
+            <arg value="*.js" />
+        </exec>
+    </retry>
+    </target>
 </project>
