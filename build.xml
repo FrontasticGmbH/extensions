@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Commercetools extension" basedir="./" default="test">
+<project name="API Hub extensions" basedir="./" default="test">
 
     <property name="frontastic_basedir" value="${basedir}/../../.." />
     <property name="integration_dir" value="${frontastic_basedir}/paas/integration" />
-    <property name="copy-build-to-dist" value="true" />
 
     <!--
         Include local project properties.
@@ -18,9 +17,55 @@
     -->
     <import file="${integration_dir}/main.xml" />
 
-    <!--
-        Enable used modules
-    -->
-    <import file="${integration_dir}/project-libraries.xml" />
+    <target name="backend:bootstrap" extensionOf="-initialize:main~hook">
+        <tool-exists executable="yarn" />
 
+        <!-- Perform global js-install -->
+        <!-- This is actually a global task but since Catwalk is used everywhere, we are doing it here -->
+        <exec executable="yarn" failonerror="true" dir="${frontastic_basedir}">
+            <env key="CI" value="true" />
+
+            <arg value="--network-timeout" />
+            <arg value="1000000000" />
+
+            <!-- This is a workaround for ENOENT errors: https://github.com/yarnpkg/yarn/issues/2629 -->
+            <arg value="--mutex" />
+            <arg value="network" />
+            <arg value="--network-concurrency" />
+            <arg value="1" />
+
+            <arg value="install" />
+        </exec>
+    </target>
+
+    <target name="backend:test" depends="initialize" extensionOf="-test-unit:main~hook">
+        <tool-exists executable="yarn" />
+
+        <exec executable="yarn" failonerror="false"> <!-- FIXME: set to true when tests are fixed! -->
+            <arg value="run" />
+            <arg value="test" />
+            <env key="CI" value="true" />
+        </exec>
+    </target>
+
+    <target name="backend:package" depends="initialize" extensionOf="-package:before~hook">
+        <tool-exists executable="yarn" />
+        <exec executable="yarn" dir="${basedir}" failonerror="true">
+            <arg value="run" />
+            <arg value="build" />
+        </exec>
+
+        <copy todir="${basedir}/dist" overwrite="true">
+            <fileset dir="${basedir}/build">
+                <include name="*.js" />
+            </fileset>
+        </copy>
+
+        <retry retrycount="3" retrydelay="1000">
+            <exec executable="git" failonerror="false" dir="${basedir}/dist">
+                <arg value="add" />
+                <arg value="*.js" />
+            </exec>
+        </retry>
+    </target>
 </project>
