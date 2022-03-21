@@ -64,6 +64,7 @@
         <copy todir="${basedir}/dist" overwrite="true">
             <fileset dir="${basedir}/build">
                 <include name="*.js" />
+                <include name="*.js.map" />
             </fileset>
         </copy>
 
@@ -75,11 +76,4 @@
             </exec>
         </retry>
     </target>
-
-    <retry retrycount="3" retrydelay="1000">
-        <exec executable="git" failonerror="false" dir="${basedir}/dist">
-            <arg value="add" />
-            <arg value="*.js" />
-        </exec>
-    </retry>
 </project>
