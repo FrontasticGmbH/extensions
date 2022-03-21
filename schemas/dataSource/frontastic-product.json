@@ -1,0 +1,19 @@
+{
+  "customDataSourceType": "frontastic/product",
+  "name": "Product Next",
+  "category": "Content",
+  "icon": "source",
+  "schema": [
+    {
+      "name": "Product selection",
+      "fields": [
+        {
+          "label": "Product ID",
+          "field": "productId",
+          "type": "text",
+          "translatable": false
+        }
+      ]
+    }
+  ]
+}
