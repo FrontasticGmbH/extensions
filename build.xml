@@ -69,7 +69,7 @@
         </copy>
 
         <retry retrycount="3" retrydelay="1000">
-            <exec executable="git" failonerror="false" dir="${basedir}/build">
+            <exec executable="git" failonerror="false" dir="${basedir}/dist">
                 <arg value="add" />
                 <arg value="*.js" />
                 <arg value="*.js.map" />
