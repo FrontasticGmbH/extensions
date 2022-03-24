@@ -7,11 +7,12 @@ import { CartFetcher } from '../../utils/CartFetcher';
 import { ShippingMethod } from '../../../types/cart/ShippingMethod';
 import { Payment, PaymentStatuses } from '../../../types/cart/Payment';
 import { CartApi } from '../CartApi';
+import { getLocale } from '../../utils/Request';
 
 type ActionHook = (request: Request, actionContext: ActionContext) => Promise<Response>;
 
 async function updateCartFromRequest(request: Request, actionContext: ActionContext): Promise<Cart> {
-  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  const cartApi = new CartApi(actionContext.frontasticContext, getLocale(request));
   let cart = await CartFetcher.fetchCart(request, actionContext);
 
   if (request?.body === undefined || request?.body === '') {
@@ -56,7 +57,7 @@ export const getCart: ActionHook = async (request: Request, actionContext: Actio
 };
 
 export const addToCart: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  const cartApi = new CartApi(actionContext.frontasticContext, getLocale(request));
 
   const body: {
     variant?: { sku?: string; count: number };
@@ -88,7 +89,7 @@ export const addToCart: ActionHook = async (request: Request, actionContext: Act
 };
 
 export const updateLineItem: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  const cartApi = new CartApi(actionContext.frontasticContext, getLocale(request));
 
   const body: {
     lineItem?: { id?: string; count: number };
@@ -117,7 +118,7 @@ export const updateLineItem: ActionHook = async (request: Request, actionContext
 };
 
 export const removeLineItem: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  const cartApi = new CartApi(actionContext.frontasticContext, getLocale(request));
 
   const body: {
     lineItem?: { id?: string };
@@ -161,7 +162,7 @@ export const updateCart: ActionHook = async (request: Request, actionContext: Ac
 };
 
 export const checkout: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  const cartApi = new CartApi(actionContext.frontasticContext, getLocale(request));
 
   let cart = await updateCartFromRequest(request, actionContext);
   cart = await cartApi.order(cart);
@@ -182,7 +183,7 @@ export const checkout: ActionHook = async (request: Request, actionContext: Acti
 };
 
 export const getShippingMethods: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  const cartApi = new CartApi(actionContext.frontasticContext, getLocale(request));
   const cart = await CartFetcher.fetchCart(request, actionContext);
   const onlyMatching = request.query.onlyMatching === 'true';
 
@@ -201,7 +202,7 @@ export const getShippingMethods: ActionHook = async (request: Request, actionCon
 };
 
 export const getAvailableShippingMethods: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  const cartApi = new CartApi(actionContext.frontasticContext, getLocale(request));
   const cart = await CartFetcher.fetchCart(request, actionContext);
 
   const availableShippingMethods = await cartApi.getAvailableShippingMethods(cart);
@@ -219,7 +220,7 @@ export const getAvailableShippingMethods: ActionHook = async (request: Request, 
 };
 
 export const setShippingMethod: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  const cartApi = new CartApi(actionContext.frontasticContext, getLocale(request));
   let cart = await CartFetcher.fetchCart(request, actionContext);
 
   const body: {
@@ -245,7 +246,7 @@ export const setShippingMethod: ActionHook = async (request: Request, actionCont
 };
 
 export const addPaymentByInvoice: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  const cartApi = new CartApi(actionContext.frontasticContext, getLocale(request));
   let cart = await CartFetcher.fetchCart(request, actionContext);
 
   const body: {
@@ -281,7 +282,7 @@ export const addPaymentByInvoice: ActionHook = async (request: Request, actionCo
 };
 
 export const updatePayment: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  const cartApi = new CartApi(actionContext.frontasticContext, getLocale(request));
   const cart = await CartFetcher.fetchCart(request, actionContext);
 
   const body: {

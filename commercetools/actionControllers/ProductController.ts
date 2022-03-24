@@ -4,11 +4,12 @@ import { ActionContext } from '@frontastic/extension-types';
 import { ProductQueryFactory } from '../../utils/ProductQueryFactory';
 import { ProductQuery } from '../../../types/query/ProductQuery';
 import { CategoryQuery } from '../../../types/query/CategoryQuery';
+import { getLocale } from '../../utils/Request';
 
 type ActionHook = (request: Request, actionContext: ActionContext) => Promise<Response>;
 
 export const getProduct: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const productApi = new ProductApi(actionContext.frontasticContext, request.query.locale);
+  const productApi = new ProductApi(actionContext.frontasticContext, getLocale(request));
 
   let productQuery: ProductQuery = {};
 
@@ -36,7 +37,7 @@ export const getProduct: ActionHook = async (request: Request, actionContext: Ac
 };
 
 export const query: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const productApi = new ProductApi(actionContext.frontasticContext, request.query.locale);
+  const productApi = new ProductApi(actionContext.frontasticContext, getLocale(request));
 
   const productQuery = ProductQueryFactory.queryFromParams(request);
 
@@ -52,7 +53,7 @@ export const query: ActionHook = async (request: Request, actionContext: ActionC
 };
 
 export const queryCategories: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const productApi = new ProductApi(actionContext.frontasticContext, request.query.locale);
+  const productApi = new ProductApi(actionContext.frontasticContext, getLocale(request));
 
   const categoryQuery: CategoryQuery = {
     limit: request.query?.limit ?? undefined,
@@ -73,7 +74,7 @@ export const queryCategories: ActionHook = async (request: Request, actionContex
 };
 
 export const searchableAttributes: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const productApi = new ProductApi(actionContext.frontasticContext, request.query.locale);
+  const productApi = new ProductApi(actionContext.frontasticContext, getLocale(request));
 
   const result = await productApi.getSearchableAttributes();
 

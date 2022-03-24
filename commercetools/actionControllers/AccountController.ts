@@ -4,6 +4,7 @@ import { AccountApi } from '../AccountApi';
 import { Account } from '../../../types/account/Account';
 import { Address } from '../../../types/account/Address';
 import { CartFetcher } from '../../utils/CartFetcher';
+import { getLocale } from '../../utils/Request';
 
 type ActionHook = (request: Request, actionContext: ActionContext) => Promise<Response>;
 
@@ -31,7 +32,7 @@ type AccountChangePasswordBody = {
 };
 
 async function loginAccount(request: Request, actionContext: ActionContext, account: Account) {
-  const accountApi = new AccountApi(actionContext.frontasticContext, request.query.locale);
+  const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   const cart = await CartFetcher.fetchCart(request, actionContext);
 
@@ -124,7 +125,7 @@ export const getAccount: ActionHook = async (request: Request, actionContext: Ac
 };
 
 export const register: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const accountApi = new AccountApi(actionContext.frontasticContext, request.query.locale);
+  const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   const accountData = mapRequestToAccount(request);
 
@@ -153,7 +154,7 @@ export const register: ActionHook = async (request: Request, actionContext: Acti
 };
 
 export const confirm: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const accountApi = new AccountApi(actionContext.frontasticContext, request.query.locale);
+  const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   type AccountConfirmBody = {
     token?: string;
@@ -216,7 +217,7 @@ export const password: ActionHook = async (request: Request, actionContext: Acti
 
   let account = fetchAccountFromSession(request);
 
-  const accountApi = new AccountApi(actionContext.frontasticContext, request.query.locale);
+  const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   const accountChangePasswordBody: AccountChangePasswordBody = JSON.parse(request.body);
 
@@ -246,7 +247,7 @@ export const requestReset: ActionHook = async (request: Request, actionContext: 
 
   const accountRequestResetBody: AccountRequestResetBody = JSON.parse(request.body);
 
-  const accountApi = new AccountApi(actionContext.frontasticContext, request.query.locale);
+  const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   const passwordResetToken = await accountApi.generatePasswordResetToken(accountRequestResetBody.email);
 
@@ -273,7 +274,7 @@ export const reset: ActionHook = async (request: Request, actionContext: ActionC
 
   const accountResetBody: AccountResetBody = JSON.parse(request.body);
 
-  const accountApi = new AccountApi(actionContext.frontasticContext, request.query.locale);
+  const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   let account = await accountApi.resetPassword(accountResetBody.token, accountResetBody.newPassword);
   account.password = accountResetBody.newPassword;
@@ -297,7 +298,7 @@ export const update: ActionHook = async (request: Request, actionContext: Action
 
   let account = fetchAccountFromSession(request);
 
-  const accountApi = new AccountApi(actionContext.frontasticContext, request.query.locale);
+  const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   account = {
     ...account,
@@ -323,7 +324,7 @@ export const addAddress: ActionHook = async (request: Request, actionContext: Ac
 
   const address: Address = JSON.parse(request.body);
 
-  const accountApi = new AccountApi(actionContext.frontasticContext, request.query.locale);
+  const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   account = await accountApi.addAddress(account, address);
 
@@ -344,7 +345,7 @@ export const updateAddress: ActionHook = async (request: Request, actionContext:
 
   const address: Address = JSON.parse(request.body);
 
-  const accountApi = new AccountApi(actionContext.frontasticContext, request.query.locale);
+  const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   account = await accountApi.updateAddress(account, address);
 
@@ -365,7 +366,7 @@ export const removeAddress: ActionHook = async (request: Request, actionContext:
 
   const address: Address = JSON.parse(request.body);
 
-  const accountApi = new AccountApi(actionContext.frontasticContext, request.query.locale);
+  const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   account = await accountApi.removeAddress(account, address);
 
@@ -386,7 +387,7 @@ export const setDefaultBillingAddress: ActionHook = async (request: Request, act
 
   const address: Address = JSON.parse(request.body);
 
-  const accountApi = new AccountApi(actionContext.frontasticContext, request.query.locale);
+  const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   account = await accountApi.setDefaultBillingAddress(account, address);
 
@@ -407,7 +408,7 @@ export const setDefaultShippingAddress: ActionHook = async (request: Request, ac
 
   const address: Address = JSON.parse(request.body);
 
-  const accountApi = new AccountApi(actionContext.frontasticContext, request.query.locale);
+  const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   account = await accountApi.setDefaultShippingAddress(account, address);
 

@@ -1,11 +1,11 @@
 import { Request } from '@frontastic/extension-types';
 
 export const getPath = (request: Request): string | null => {
-  return getHeader(request, 'frontastic-path');
+  return getHeader(request, 'frontastic-path') ?? request.query.path;
 };
 
 export const getLocale = (request: Request): string | null => {
-  return getHeader(request, 'frontastic-locale');
+  return getHeader(request, 'frontastic-locale') ?? request.query.locale;
 };
 
 const getHeader = (request: Request, header: string): string | null => {
