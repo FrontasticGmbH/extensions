@@ -29,6 +29,7 @@ import { ProductRouter } from './utils/ProductRouter';
 import { Result } from '../types/product/Result';
 import { SearchRouter } from './utils/SearchRouter';
 import { Product } from '../types/product/Product';
+import { getPath, getLocale } from './utils/Request';
 
 export default {
   'dynamic-page-handler': async (
@@ -38,7 +39,6 @@ export default {
     // **************************
     // Commercetools integration
     // **************************
-
     // Identify Product
     if (ProductRouter.identifyFrom(request)) {
       console.log('Identify Product');
@@ -78,7 +78,7 @@ export default {
       });
     }
 
-    const cartUrlMatches = request.query.path.match(/^\/cart/);
+    const cartUrlMatches = getPath(request)?.match(/^\/cart/);
     if (cartUrlMatches) {
       console.log('Matched cart page');
       return {
@@ -96,7 +96,7 @@ export default {
       };
     }
 
-    const categoryUrlMatches = request.query.path.match(/^\/category\/([^\/]+)/);
+    const categoryUrlMatches = getPath(request)?.match(/^\/category\/([^\/]+)/);
     if (categoryUrlMatches) {
       console.log('Matched category page');
       return {
@@ -117,30 +117,29 @@ export default {
     // **************************
     // Docs examples
     // **************************
-    const starWarsUrlMatches = request.query.path.match(new RegExp('/movie/([^ /]+)/([^ /]+)'));
+    const starWarsUrlMatches = getPath(request)?.match(new RegExp('/movie/([^ /]+)/([^ /]+)'));
     if (starWarsUrlMatches) {
-      return await loadMovieData(starWarsUrlMatches[2]).then((result: MovieData | null):
-        | DynamicPageSuccessResult
-        | DynamicPageRedirectResult
-        | null => {
-        if (result === null) {
-          return null;
-        }
+      return await loadMovieData(starWarsUrlMatches[2]).then(
+        (result: MovieData | null): DynamicPageSuccessResult | DynamicPageRedirectResult | null => {
+          if (result === null) {
+            return null;
+          }
 
-        if (request.query.path !== result._url) {
-          console.log(request.query.path, result._url, request.query.path !== result._url);
+          if (getPath(request) !== result._url) {
+            console.log(getPath(request), result._url, getPath(request) !== result._url);
+            return {
+              statusCode: 301,
+              redirectLocation: result._url,
+            } as DynamicPageRedirectResult;
+          }
+
           return {
-            statusCode: 301,
-            redirectLocation: result._url,
-          } as DynamicPageRedirectResult;
-        }
-
-        return {
-          dynamicPageType: 'example/star-wars-movie-page',
-          dataSourcePayload: result,
-          pageMatchingPayload: result,
-        } as DynamicPageSuccessResult;
-      });
+            dynamicPageType: 'example/star-wars-movie-page',
+            dataSourcePayload: result,
+            pageMatchingPayload: result,
+          } as DynamicPageSuccessResult;
+        },
+      );
     }
 
     return null;
@@ -150,7 +149,7 @@ export default {
     // Commercetools integration
     // **************************
     'frontastic/product-list': async (config: DataSourceConfiguration, context: DataSourceContext) => {
-      const productApi = new ProductApi(context.frontasticContext, context?.request.query.locale);
+      const productApi = new ProductApi(context.frontasticContext, context.request ? getLocale(context.request) : null);
 
       const productQuery = ProductQueryFactory.queryFromParams(context?.request, config);
 
@@ -172,13 +171,11 @@ export default {
         .post<DataSourceResult>('https://swapi-graphql.netlify.app/.netlify/functions/index', {
           query: '{film(id:"' + config.configuration.movieId + '") {id, title, episodeID, openingCrawl, releaseDate}}',
         })
-        .then(
-          (response): DataSourceResult => {
-            return {
-              dataSourcePayload: response.data,
-            } as DataSourceResult;
-          },
-        )
+        .then((response): DataSourceResult => {
+          return {
+            dataSourcePayload: response.data,
+          } as DataSourceResult;
+        })
         .catch((reason) => {
           return {
             dataSourcePayload: {
@@ -219,13 +216,11 @@ export default {
             }
           }`,
         })
-        .then(
-          (response): DataSourceResult => {
-            return {
-              dataSourcePayload: response.data?.data?.allPeople || {},
-            } as DataSourceResult;
-          },
-        )
+        .then((response): DataSourceResult => {
+          return {
+            dataSourcePayload: response.data?.data?.allPeople || {},
+          } as DataSourceResult;
+        })
         .catch((reason) => {
           return {
             dataSourcePayload: {
