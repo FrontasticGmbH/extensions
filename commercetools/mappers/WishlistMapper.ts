@@ -3,6 +3,7 @@ import { ShoppingList, ShoppingListLineItem } from '@commercetools/platform-sdk'
 import { ShoppingListDraft } from '@commercetools/platform-sdk/dist/declarations/src/generated/models/shopping-list';
 import { Locale } from '../Locale';
 import { LineItem } from '../../../types/wishlist/LineItem';
+import { ProductRouter } from '../../utils/ProductRouter';
 
 export class WishlistMapper {
   static commercetoolsShoppingListToWishlist = (commercetoolsShoppingList: ShoppingList, locale: Locale): Wishlist => {
@@ -22,7 +23,7 @@ export class WishlistMapper {
     commercetoolsLineItem: ShoppingListLineItem,
     locale: Locale,
   ): LineItem => {
-    return {
+    let lineItem: LineItem = {
       lineItemId: commercetoolsLineItem.id,
       name: commercetoolsLineItem.name[locale.language],
       type: 'variant',
@@ -33,6 +34,8 @@ export class WishlistMapper {
         images: commercetoolsLineItem.variant?.images?.map((image) => image.url),
       },
     };
+    lineItem._url = ProductRouter.generateUrlFor(lineItem);
+    return lineItem;
   };
 
   static wishlistToCommercetoolsShoppingListDraft = (
