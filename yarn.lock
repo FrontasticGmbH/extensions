@@ -1166,10 +1166,10 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@frontastic/extension-types@0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@frontastic/extension-types/-/extension-types-0.0.6.tgz#276264c5c02f9ca20defa804686e60e6131f8a2d"
-  integrity sha512-58JQwrPnnpsIkHoPqc7Mf6+1HgtWiH5q9Ce0C+Z8GKFfVuBugf4/ud5MbkVMHMKgRBx+NL4ZThkYVJ6Z009hRA==
+"@frontastic/extension-types@0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@frontastic/extension-types/-/extension-types-0.0.7.tgz#df8d9d9f5d97c9be569bdb347d8ac6e69439c2de"
+  integrity sha512-GFSX8QEr3asaSzKdCmLo5j0bbycnop6iKsFZNkWsES4J6LSfUFaGaNok0Eka5Q82lph1SYyNcZpeiwWbsuUBlA==
 
 "@humanwhocodes/config-array@^0.9.2":
   version "0.9.2"
