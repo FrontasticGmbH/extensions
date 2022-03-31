@@ -372,6 +372,32 @@ export class CartApi extends BaseApi {
     }
   };
 
+  getOrders: (account: Account) => Promise<Order[]> = async (account: Account) => {
+    try {
+      const locale = await this.getCommercetoolsLocal();
+
+      const response = await this.getApiForProject()
+        .orders()
+        .get({
+          queryArgs: {
+            expand: [
+              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
+              'discountCodes[*].discountCode',
+              'paymentInfo.payments[*]',
+            ],
+            where: `customerId="${account.accountId}"`,
+            sort: 'createdAt desc',
+          },
+        })
+        .execute();
+
+      return response.body.results.map((order) => CartMapper.commercetoolsOrderToOrder(order, locale));
+    } catch (error) {
+      //TODO: better error, get status code etc...
+      throw new Error(`get orders failed. ${error}`);
+    }
+  };
+
   getShippingMethods: (onlyMatching: boolean) => Promise<ShippingMethod[]> = async (onlyMatching: boolean) => {
     try {
       const locale = await this.getCommercetoolsLocal();
