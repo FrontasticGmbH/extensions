@@ -4,10 +4,11 @@ import { ProductApi } from '../commercetools/ProductApi';
 import { CategoryQuery } from '../../types/query/CategoryQuery';
 import { Category } from '../../types/product/Category';
 import { ProductQuery } from '../../types/query/ProductQuery';
+import { getLocale, getPath } from './Request';
 
 export class CategoryRouter {
   static identifyFrom(request: Request) {
-    if (request.query.path.match(/.+/)) {
+    if (getPath(request)?.match(/.+/)) {
       return true;
     }
 
@@ -15,8 +16,8 @@ export class CategoryRouter {
   }
 
   static loadFor = async (request: Request, frontasticContext: Context): Promise<Product[]> => {
-    const productApi = new ProductApi(frontasticContext, request.query.locale);
-    const urlMatches = request.query.path.match(/.+/);
+    const productApi = new ProductApi(frontasticContext, getLocale(request));
+    const urlMatches = getPath(request)?.match(/.+/);
 
     if (this.identifyFrom(request)) {
       const categoryQuery: CategoryQuery = {
