@@ -37,6 +37,16 @@
 
             <arg value="install" />
         </exec>
+
+        <!--
+            Always try to build development modules once on intilization so
+            sandbox backend builds are up-to-date without running the
+            frontastic-cli first.
+        -->
+        <exec executable="node_modules/.bin/webpack-cli" failonerror="false" dir="${basedir}">
+            <arg value="--config" />
+            <arg value="webpack/webpack.dev.js" />
+        </exec>
     </target>
 
     <target name="commercetools extension:test" unless="${production}" extensionOf="-test-unit:main~hook">
