@@ -55,6 +55,11 @@ export class ProductApi extends BaseApi {
         filterQuery.push(`variants.sku:"${productQuery.skus.join('","')}"`);
       }
 
+      if (productQuery.category !== undefined && productQuery.category !== '') {
+        filterQuery.push(`categories.id:subtree("${productQuery.category}")`);
+      }
+
+
       if (productQuery.filters !== undefined) {
         productQuery.filters.forEach((filter) => {
           switch (filter.type) {

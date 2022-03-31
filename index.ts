@@ -26,6 +26,7 @@ import { ProductQueryFactory } from './utils/ProductQueryFactory';
 import axios from 'axios';
 import { loadMovieData, MovieData } from './doc-code/movieData';
 import { ProductRouter } from './utils/ProductRouter';
+import { CategoryRouter } from './utils/CategoryRouter';
 import { Result } from '../types/product/Result';
 import { SearchRouter } from './utils/SearchRouter';
 import { Product } from '../types/product/Product';
@@ -96,22 +97,20 @@ export default {
       };
     }
 
-    const categoryUrlMatches = getPath(request)?.match(/^\/category\/([^\/]+)/);
-    if (categoryUrlMatches) {
-      console.log('Matched category page');
-      return {
-        dynamicPageType: 'frontastic-test/category',
-        dataSourcePayload: {
-          items: [
-            {
-              some: 'thing',
+    if (CategoryRouter.identifyFrom(request)) {
+      return CategoryRouter.loadFor(request, context.frontasticContext).then((products: Product[]) => {
+        if(products) {
+          return {
+            dynamicPageType: 'frontastic/category',
+            dataSourcePayload: {
+              products,
             },
-          ],
-        },
-        pageMatchingPayload: {
-          categoryName: 'Foo Bar',
-        },
-      };
+            pageMatchingPayload: {
+              products,
+            },
+          }
+        }
+      })
     }
 
     // **************************
