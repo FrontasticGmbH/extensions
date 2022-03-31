@@ -99,7 +99,7 @@ export default {
 
     if (CategoryRouter.identifyFrom(request)) {
       return CategoryRouter.loadFor(request, context.frontasticContext).then((products: Product[]) => {
-        if(products) {
+        if (products) {
           return {
             dynamicPageType: 'frontastic/category',
             dataSourcePayload: {
@@ -108,9 +108,12 @@ export default {
             pageMatchingPayload: {
               products,
             },
-          }
+          };
         }
-      })
+
+        // FIXME: Return proper error result
+        return null;
+      });
     }
 
     // **************************
@@ -118,28 +121,27 @@ export default {
     // **************************
     const starWarsUrlMatches = request.query.path.match(new RegExp('/movie/([^ /]+)/([^ /]+)'));
     if (starWarsUrlMatches) {
-      return await loadMovieData(starWarsUrlMatches[2]).then((result: MovieData | null):
-        | DynamicPageSuccessResult
-        | DynamicPageRedirectResult
-        | null => {
-        if (result === null) {
-          return null;
-        }
+      return await loadMovieData(starWarsUrlMatches[2]).then(
+        (result: MovieData | null): DynamicPageSuccessResult | DynamicPageRedirectResult | null => {
+          if (result === null) {
+            return null;
+          }
 
-        if (request.query.path !== result._url) {
-          console.log(request.query.path, result._url, request.query.path !== result._url);
+          if (request.query.path !== result._url) {
+            console.log(request.query.path, result._url, request.query.path !== result._url);
+            return {
+              statusCode: 301,
+              redirectLocation: result._url,
+            } as DynamicPageRedirectResult;
+          }
+
           return {
-            statusCode: 301,
-            redirectLocation: result._url,
-          } as DynamicPageRedirectResult;
-        }
-
-        return {
-          dynamicPageType: 'example/star-wars-movie-page',
-          dataSourcePayload: result,
-          pageMatchingPayload: result,
-        } as DynamicPageSuccessResult;
-      });
+            dynamicPageType: 'example/star-wars-movie-page',
+            dataSourcePayload: result,
+            pageMatchingPayload: result,
+          } as DynamicPageSuccessResult;
+        },
+      );
     }
 
     return null;
@@ -171,13 +173,11 @@ export default {
         .post<DataSourceResult>('https://swapi-graphql.netlify.app/.netlify/functions/index', {
           query: '{film(id:"' + config.configuration.movieId + '") {id, title, episodeID, openingCrawl, releaseDate}}',
         })
-        .then(
-          (response): DataSourceResult => {
-            return {
-              dataSourcePayload: response.data,
-            } as DataSourceResult;
-          },
-        )
+        .then((response): DataSourceResult => {
+          return {
+            dataSourcePayload: response.data,
+          } as DataSourceResult;
+        })
         .catch((reason) => {
           return {
             dataSourcePayload: {
@@ -218,13 +218,11 @@ export default {
             }
           }`,
         })
-        .then(
-          (response): DataSourceResult => {
-            return {
-              dataSourcePayload: response.data?.data?.allPeople || {},
-            } as DataSourceResult;
-          },
-        )
+        .then((response): DataSourceResult => {
+          return {
+            dataSourcePayload: response.data?.data?.allPeople || {},
+          } as DataSourceResult;
+        })
         .catch((reason) => {
           return {
             dataSourcePayload: {
