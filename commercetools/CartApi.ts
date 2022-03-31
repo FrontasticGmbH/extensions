@@ -48,7 +48,8 @@ export class CartApi extends BaseApi {
               'discountCodes[*].discountCode',
               'paymentInfo.payments[*]',
             ],
-            customerId: account.accountId,
+            where: [`customerId="${account.accountId}"`, `cartState="Active"`],
+            sort: 'createdAt desc',
           },
         })
         .execute();
@@ -100,7 +101,8 @@ export class CartApi extends BaseApi {
               'discountCodes[*].discountCode',
               'paymentInfo.payments[*]',
             ],
-            where: `anonymousId="${anonymousId}"`,
+            where: [`anonymousId="${anonymousId}"`, `cartState="Active"`],
+            sort: 'createdAt desc',
           },
         })
         .execute();
