@@ -48,7 +48,8 @@ export class CartApi extends BaseApi {
               'discountCodes[*].discountCode',
               'paymentInfo.payments[*]',
             ],
-            customerId: account.accountId,
+            where: [`customerId="${account.accountId}"`, `cartState="Active"`],
+            sort: 'createdAt desc',
           },
         })
         .execute();
@@ -100,7 +101,8 @@ export class CartApi extends BaseApi {
               'discountCodes[*].discountCode',
               'paymentInfo.payments[*]',
             ],
-            where: `anonymousId="${anonymousId}"`,
+            where: [`anonymousId="${anonymousId}"`, `cartState="Active"`],
+            sort: 'createdAt desc',
           },
         })
         .execute();
@@ -367,6 +369,32 @@ export class CartApi extends BaseApi {
     } catch (error) {
       //TODO: better error, get status code etc...
       throw new Error(`order failed. ${error}`);
+    }
+  };
+
+  getOrders: (account: Account) => Promise<Order[]> = async (account: Account) => {
+    try {
+      const locale = await this.getCommercetoolsLocal();
+
+      const response = await this.getApiForProject()
+        .orders()
+        .get({
+          queryArgs: {
+            expand: [
+              'lineItems[*].discountedPrice.includedDiscounts[*].discount',
+              'discountCodes[*].discountCode',
+              'paymentInfo.payments[*]',
+            ],
+            where: `customerId="${account.accountId}"`,
+            sort: 'createdAt desc',
+          },
+        })
+        .execute();
+
+      return response.body.results.map((order) => CartMapper.commercetoolsOrderToOrder(order, locale));
+    } catch (error) {
+      //TODO: better error, get status code etc...
+      throw new Error(`get orders failed. ${error}`);
     }
   };
 

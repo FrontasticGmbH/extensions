@@ -99,7 +99,7 @@ export default {
 
     if (CategoryRouter.identifyFrom(request)) {
       return CategoryRouter.loadFor(request, context.frontasticContext).then((products: Product[]) => {
-        if(products) {
+        if (products) {
           return {
             dynamicPageType: 'frontastic/category',
             dataSourcePayload: {
@@ -108,9 +108,12 @@ export default {
             pageMatchingPayload: {
               products,
             },
-          }
+          };
         }
-      })
+
+        // FIXME: Return proper error result
+        return null;
+      });
     }
 
     // **************************

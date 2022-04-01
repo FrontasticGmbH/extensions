@@ -182,6 +182,28 @@ export const checkout: ActionHook = async (request: Request, actionContext: Acti
   return response;
 };
 
+export const getOrders: ActionHook = async (request: Request, actionContext: ActionContext) => {
+  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+
+  const account = request.sessionData?.account !== undefined ? request.sessionData.account : undefined;
+
+  if (account === undefined) {
+    throw new Error('Not logged in.');
+  }
+
+  const orders = await cartApi.getOrders(account);
+
+  const response: Response = {
+    statusCode: 200,
+    body: JSON.stringify(orders),
+    sessionData: {
+      ...request.sessionData,
+    },
+  };
+
+  return response;
+};
+
 export const getShippingMethods: ActionHook = async (request: Request, actionContext: ActionContext) => {
   const cartApi = new CartApi(actionContext.frontasticContext, getLocale(request));
   const cart = await CartFetcher.fetchCart(request, actionContext);
