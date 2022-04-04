@@ -183,7 +183,7 @@ export const checkout: ActionHook = async (request: Request, actionContext: Acti
 };
 
 export const getOrders: ActionHook = async (request: Request, actionContext: ActionContext) => {
-  const cartApi = new CartApi(actionContext.frontasticContext, request.query.locale);
+  const cartApi = new CartApi(actionContext.frontasticContext, getLocale(request));
 
   const account = request.sessionData?.account !== undefined ? request.sessionData.account : undefined;
 
