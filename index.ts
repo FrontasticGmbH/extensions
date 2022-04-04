@@ -106,13 +106,13 @@ export default {
               products: result.items,
               previousCursor: result.previousCursor,
               nextCursor: result.nextCursor,
-              category: request.query.path
+              category: getPath(request)
             },
             pageMatchingPayload: {
               products: result.items,
               previousCursor: result.previousCursor,
               nextCursor: result.nextCursor,
-              category: request.query.path
+              category: getPath(request)
             },
           };
         }
