@@ -1,4 +1,3 @@
-import { Product } from '../../types/product/Product';
 import { Context, Request } from '@frontastic/extension-types';
 import { ProductApi } from '../commercetools/ProductApi';
 import { CategoryQuery } from '../../types/query/CategoryQuery';
@@ -20,21 +19,23 @@ export class CategoryRouter {
   static loadFor = async (request: Request, frontasticContext: Context): Promise<Result> => {
     const productApi = new ProductApi(frontasticContext, getLocale(request));
     const offset = request.query.cursor
-    const urlMatches = getPath(request)?.match(/.+/);
+    const urlMatches = getPath(request)?.match(/[^\/]+/);
 
     if (urlMatches) {
       const categoryQuery: CategoryQuery = {
-        slug: urlMatches[1],
+        slug: urlMatches[0],
       };
 
-      const categoryQueryResult = await productApi.queryCategories(categoryQuery)      
+      const categoryQueryResult = await productApi.queryCategories(categoryQuery)
+      if(categoryQueryResult.items.length == 0) return null
+
       const category = (categoryQueryResult.items[0] as Category).categoryId
+            
       const productQuery: ProductQuery = {
         category,
         cursor: offset
       }
 
-      
       return (await productApi.query(productQuery))
     }
 
