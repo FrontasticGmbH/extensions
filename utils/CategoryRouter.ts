@@ -5,6 +5,7 @@ import { CategoryQuery } from '../../types/query/CategoryQuery';
 import { Category } from '../../types/product/Category';
 import { ProductQuery } from '../../types/query/ProductQuery';
 import { getLocale, getPath } from './Request';
+import { Result } from '../../types/product/Result';
 
 export class CategoryRouter {
   static identifyFrom(request: Request) {
@@ -15,22 +16,26 @@ export class CategoryRouter {
     return false;
   }
 
-  static loadFor = async (request: Request, frontasticContext: Context): Promise<Product[]> => {
+
+  static loadFor = async (request: Request, frontasticContext: Context): Promise<Result> => {
     const productApi = new ProductApi(frontasticContext, getLocale(request));
+    const offset = request.query.cursor
     const urlMatches = getPath(request)?.match(/.+/);
 
-    if (this.identifyFrom(request)) {
+    if (urlMatches) {
       const categoryQuery: CategoryQuery = {
         slug: urlMatches[1],
       };
 
-      const categoryQueryResult = await productApi.queryCategories(categoryQuery)
+      const categoryQueryResult = await productApi.queryCategories(categoryQuery)      
       const category = (categoryQueryResult.items[0] as Category).categoryId
       const productQuery: ProductQuery = {
         category,
+        cursor: offset
       }
 
-      return (await productApi.query(productQuery)).items as Product[]
+      
+      return (await productApi.query(productQuery))
     }
 
     return null;

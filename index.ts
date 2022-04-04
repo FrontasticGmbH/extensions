@@ -98,15 +98,21 @@ export default {
     }
 
     if (CategoryRouter.identifyFrom(request)) {
-      return CategoryRouter.loadFor(request, context.frontasticContext).then((products: Product[]) => {
-        if (products) {
+      return CategoryRouter.loadFor(request, context.frontasticContext).then((result: Result) => {
+        if(result) {
           return {
             dynamicPageType: 'frontastic/category',
             dataSourcePayload: {
-              products,
+              products: result.items,
+              previousCursor: result.previousCursor,
+              nextCursor: result.nextCursor,
+              category: request.query.path
             },
             pageMatchingPayload: {
-              products,
+              products: result.items,
+              previousCursor: result.previousCursor,
+              nextCursor: result.nextCursor,
+              category: request.query.path
             },
           };
         }
