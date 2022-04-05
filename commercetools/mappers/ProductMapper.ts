@@ -91,8 +91,8 @@ export class ProductMapper {
     const { price, discountedPrice, discounts } = ProductMapper.extractPriceAndDiscounts(commercetoolsVariant, locale);
 
     return {
-      id: commercetoolsVariant.id.toString(),
-      sku: commercetoolsVariant.sku.toString(),
+      id: commercetoolsVariant.id?.toString(),
+      sku: commercetoolsVariant.sku?.toString(),
       images: commercetoolsVariant.images.map((image) => image.url),
       groupId: attributes?.baseId || undefined,
       attributes: attributes,
