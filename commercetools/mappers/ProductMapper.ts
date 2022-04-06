@@ -99,6 +99,7 @@ export class ProductMapper {
       price: price,
       discountedPrice: discountedPrice,
       discounts: discounts,
+      isOnStock: commercetoolsVariant.availability?.isOnStock || undefined,
     } as Variant;
   };
 
