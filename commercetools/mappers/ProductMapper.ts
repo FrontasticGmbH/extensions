@@ -271,6 +271,7 @@ export class ProductMapper {
     commercetoolsProductTypes: CommercetoolsProductType[],
     locale: Locale,
   ): FacetDefinition[] {
+    const facetDefinitionsIndex: { [key: string]: FacetDefinition } = {};
     const facetDefinitions: FacetDefinition[] = [];
 
     commercetoolsProductTypes?.forEach((productType) => {
@@ -279,12 +280,18 @@ export class ProductMapper {
           return;
         }
 
-        facetDefinitions.push({
+        const facetDefinition: FacetDefinition = {
           attributeType: attribute.type.name,
           attributeId: `variants.attributes.${attribute.name}`,
-        });
+        };
+
+        facetDefinitionsIndex[facetDefinition.attributeId] = facetDefinition;
       });
     });
+
+    for (const [attributeId, facetDefinition] of Object.entries(facetDefinitionsIndex)) {
+      facetDefinitions.push(facetDefinition);
+    }
 
     return facetDefinitions;
   }
