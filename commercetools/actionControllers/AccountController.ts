@@ -5,6 +5,7 @@ import { Account } from '../../../types/account/Account';
 import { Address } from '../../../types/account/Address';
 import { CartFetcher } from '../../utils/CartFetcher';
 import { getLocale } from '../../utils/Request';
+import { EmailApi } from '../EmailApi';
 
 type ActionHook = (request: Request, actionContext: ActionContext) => Promise<Response>;
 
@@ -134,7 +135,23 @@ export const register: ActionHook = async (request: Request, actionContext: Acti
   let account = await accountApi.create(accountData, cart);
 
   if (account.confirmationToken !== undefined) {
-    // TODO: send confirmation email for the new account
+    const emailApi = new EmailApi();
+
+    //Verification url
+    const host = process.env.NODE_ENV === 'development' ? 'localhost:3000' : process.env.client_host;
+    const path = `verify?token=${account.confirmationToken}`;
+    const url = `${host}/${path}`;
+
+    await emailApi.sendEmail({
+      from: 'no-reply@frontastic.cloud',
+      to: account.email,
+      subject: 'Account verification',
+      html: `
+              <h1>Thanks for your registration!</h1>
+              <p style="margin-top: 10px;color:gray;">Please activate your account by clicking the below link</p>
+              <a href="${url}">${url}</a>
+            `,
+    });
   }
 
   // TODO: do we need to log in the account after creation?
