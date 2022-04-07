@@ -38,5 +38,5 @@ module.exports = {
     filename: 'bundle.min.js',
     path: path.resolve(__dirname, '../build'),
   },
-  plugins: [new Dotenv({ path: path.resolve('..', '.env') })],
+  plugins: [new Dotenv({ path: path.resolve(__dirname, '..', '.env') })],
 };

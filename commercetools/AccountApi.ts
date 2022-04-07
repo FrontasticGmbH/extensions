@@ -123,7 +123,7 @@ export class AccountApi extends BaseApi {
         });
     } catch (error) {
       //TODO: better error, get status code etc...
-      throw new Error(`resetPassword failed. ${error}`);
+      throw new Error(`Confirm email failed. ${error}`);
     }
   };
 
@@ -170,8 +170,14 @@ export class AccountApi extends BaseApi {
           throw new Error(`Failed to login account  ${account.email}.`);
         });
 
-      if (account.confirmed === undefined) {
-        throw new Error(`Your email address ${account.email} was not yet verified.`);
+      if (!account.confirmed) {
+        const tokenResponse = await this.getApiForProject()
+          .customers()
+          .emailToken()
+          .post({ body: { id: account.accountId, ttlMinutes: 2 * 7 * 24 * 60 } })
+          .execute();
+        account.confirmationToken = tokenResponse.body.value;
+        account.tokenValidUntil = new Date(tokenResponse.body.expiresAt);
       }
 
       return account;

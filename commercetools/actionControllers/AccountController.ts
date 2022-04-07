@@ -127,6 +127,7 @@ export const getAccount: ActionHook = async (request: Request, actionContext: Ac
 
 export const register: ActionHook = async (request: Request, actionContext: ActionContext) => {
   const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
+  const emailApi = new EmailApi();
 
   const accountData = mapRequestToAccount(request);
 
@@ -134,25 +135,7 @@ export const register: ActionHook = async (request: Request, actionContext: Acti
 
   let account = await accountApi.create(accountData, cart);
 
-  if (account.confirmationToken !== undefined) {
-    const emailApi = new EmailApi();
-
-    //Verification url
-    const host = process.env.NODE_ENV === 'development' ? 'localhost:3000' : process.env.client_host;
-    const path = `verify?token=${account.confirmationToken}`;
-    const url = `${host}/${path}`;
-
-    await emailApi.sendEmail({
-      from: 'no-reply@frontastic.cloud',
-      to: account.email,
-      subject: 'Account verification',
-      html: `
-              <h1>Thanks for your registration!</h1>
-              <p style="margin-top: 10px;color:gray;">Please activate your account by clicking the below link</p>
-              <a href="${url}">${url}</a>
-            `,
-    });
-  }
+  await emailApi.sendVerificationEmail(account);
 
   // TODO: do we need to log in the account after creation?
   // TODO: handle exception when customer can't login if email is not confirmed
@@ -165,6 +148,22 @@ export const register: ActionHook = async (request: Request, actionContext: Acti
       ...request.sessionData,
       account: account,
     },
+  };
+
+  return response;
+};
+
+export const resendVerificationEmail: ActionHook = async (request: Request, actionContext: ActionContext) => {
+  const data = JSON.parse(request.body) as Account;
+
+  const emailApi = new EmailApi();
+
+  const account = await loginAccount(request, actionContext, data);
+
+  await emailApi.sendVerificationEmail(account);
+
+  const response: Response = {
+    statusCode: 200,
   };
 
   return response;
