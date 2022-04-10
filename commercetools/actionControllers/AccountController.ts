@@ -261,13 +261,15 @@ export const requestReset: ActionHook = async (request: Request, actionContext: 
     email?: string;
   };
 
-  const accountRequestResetBody: AccountRequestResetBody = JSON.parse(request.body);
-
   const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
+  const emailApi = new EmailApi();
+
+  const accountRequestResetBody: AccountRequestResetBody = JSON.parse(request.body);
 
   const passwordResetToken = await accountApi.generatePasswordResetToken(accountRequestResetBody.email);
 
-  // TODO: send email to user with token info
+  await emailApi.sendPasswordResetEmail(passwordResetToken.confirmationToken, accountRequestResetBody.email);
+
   return {
     statusCode: 200,
     body: JSON.stringify({}),

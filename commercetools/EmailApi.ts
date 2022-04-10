@@ -37,25 +37,49 @@ export class EmailApi {
     });
   }
 
-  async sendEmail(data: { from: string; to: string; subject?: string; text?: string; html?: string }) {
-    const { from, to, text, html, subject } = data;
+  getUrl(token: string, relPath: string) {
+    const host = process.env.NODE_ENV === 'development' ? 'localhost:3000' : process.env.client_host;
+    const path = `${relPath}?token=${token}`;
+    const url = `${host}/${path}`;
+    return url;
+  }
+
+  async sendEmail(data: { to: string; subject?: string; text?: string; html?: string }) {
+    const from = 'no-reply@frontastic.cloud';
+    const { to, text, html, subject } = data;
     return await this.transport.sendMail({ from, to, subject, text, html });
   }
 
   async sendVerificationEmail(account: Account) {
     //Verification url
-    const host = process.env.NODE_ENV === 'development' ? 'localhost:3000' : process.env.client_host;
-    const path = `verify?token=${account.confirmationToken}`;
-    const url = `${host}/${path}`;
+    const url = this.getUrl(account.confirmationToken, 'verify');
+    //message content
     const html = `
                   <h1>Thanks for your registration!</h1>
                   <p style="margin-top: 10px;color:gray;">Please activate your account by clicking the below link</p>
                   <a href="${url}">${url}</a>
                 `;
+    //send email
     await this.sendEmail({
-      from: 'no-reply@frontastic.cloud',
       to: account.email,
-      subject: 'Account verification',
+      subject: 'Account Verification',
+      html,
+    });
+  }
+
+  async sendPasswordResetEmail(token: string, email: string) {
+    //Password reset URL
+    const url = this.getUrl(token, 'reset');
+    //message content
+    const html = `
+                  <h1>You requested a password reset!</h1>
+                  <p style="margin-top: 10px;color:gray;">Please click the link below to proceed.</p>
+                  <a href="${url}">${url}</a>
+                `;
+    //send email
+    await this.sendEmail({
+      to: email,
+      subject: 'Password Reset',
       html,
     });
   }
