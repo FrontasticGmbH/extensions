@@ -59,7 +59,6 @@ export class ProductApi extends BaseApi {
         filterQuery.push(`categories.id:subtree("${productQuery.category}")`);
       }
 
-
       if (productQuery.filters !== undefined) {
         productQuery.filters.forEach((filter) => {
           switch (filter.type) {
@@ -73,8 +72,10 @@ export class ProductApi extends BaseApi {
               break;
             case FilterTypes.RANGE:
               if (filter.identifier === 'price') {
+                // The scopedPrice filter is a commercetools price filter of a product variant selected
+                // base on the price scope. The scope used is currency and country.
                 filterQuery.push(
-                  `variants.${filter.identifier}.centAmount:range (${(filter as RangeFilter).min ?? '*'} to ${
+                  `variants.scopedPrice.value.centAmount:range (${(filter as RangeFilter).min ?? '*'} to ${
                     (filter as RangeFilter).max ?? '*'
                   })`,
                 );
