@@ -3,10 +3,11 @@ import { Context, Request } from '@frontastic/extension-types';
 import { ProductQueryFactory } from './ProductQueryFactory';
 import { Result } from '../../types/product/Result';
 import { ProductApi } from '../commercetools/ProductApi';
+import { getPath, getLocale } from './Request';
 
 export class SearchRouter {
   static identifyFrom(request: Request) {
-    const urlMatches = request.query.path.match(/\/search/);
+    const urlMatches = getPath(request)?.match(/\/search/);
 
     if (urlMatches) {
       return true;
@@ -16,9 +17,9 @@ export class SearchRouter {
   }
 
   static loadFor = async (request: Request, frontasticContext: Context): Promise<Result> | null => {
-    const productApi = new ProductApi(frontasticContext, request.query.locale);
+    const productApi = new ProductApi(frontasticContext, getLocale(request));
 
-    const urlMatches = request.query.path.match(/\/search/);
+    const urlMatches = getPath(request)?.match(/\/search/);
 
     if (urlMatches) {
       const productQuery = ProductQueryFactory.queryFromParams({
