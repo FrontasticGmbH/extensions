@@ -9,6 +9,7 @@ module.exports = {
         __dirname: false,
         __filename: false,
     },
+    devtool: 'source-map',
     module: {
         rules: [
             {
@@ -39,5 +40,7 @@ module.exports = {
     output: {
         filename: 'bundle.min.js',
         path: path.resolve(__dirname, '../build'),
+        library: "hooksImported",
+        libraryTarget: "umd"
     },
 };
