@@ -99,20 +99,20 @@ export default {
 
     if (CategoryRouter.identifyFrom(request)) {
       return CategoryRouter.loadFor(request, context.frontasticContext).then((result: Result) => {
-        if(result) {
+        if (result) {
           return {
             dynamicPageType: 'frontastic/category',
             dataSourcePayload: {
               products: result.items,
               previousCursor: result.previousCursor,
               nextCursor: result.nextCursor,
-              category: getPath(request)
+              category: getPath(request),
             },
             pageMatchingPayload: {
               products: result.items,
               previousCursor: result.previousCursor,
               nextCursor: result.nextCursor,
-              category: getPath(request)
+              category: getPath(request),
             },
           };
         }
