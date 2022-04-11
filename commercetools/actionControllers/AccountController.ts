@@ -5,6 +5,7 @@ import { Account } from '../../../types/account/Account';
 import { Address } from '../../../types/account/Address';
 import { CartFetcher } from '../../utils/CartFetcher';
 import { getLocale } from '../../utils/Request';
+import { EmailApi } from '../EmailApi';
 
 type ActionHook = (request: Request, actionContext: ActionContext) => Promise<Response>;
 
@@ -126,6 +127,7 @@ export const getAccount: ActionHook = async (request: Request, actionContext: Ac
 
 export const register: ActionHook = async (request: Request, actionContext: ActionContext) => {
   const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
+  const emailApi = new EmailApi();
 
   const accountData = mapRequestToAccount(request);
 
@@ -133,9 +135,7 @@ export const register: ActionHook = async (request: Request, actionContext: Acti
 
   let account = await accountApi.create(accountData, cart);
 
-  if (account.confirmationToken !== undefined) {
-    // TODO: send confirmation email for the new account
-  }
+  await emailApi.sendVerificationEmail(account);
 
   // TODO: do we need to log in the account after creation?
   // TODO: handle exception when customer can't login if email is not confirmed
@@ -148,6 +148,22 @@ export const register: ActionHook = async (request: Request, actionContext: Acti
       ...request.sessionData,
       account: account,
     },
+  };
+
+  return response;
+};
+
+export const resendVerificationEmail: ActionHook = async (request: Request, actionContext: ActionContext) => {
+  const data = JSON.parse(request.body) as Account;
+
+  const emailApi = new EmailApi();
+
+  const account = await loginAccount(request, actionContext, data);
+
+  await emailApi.sendVerificationEmail(account);
+
+  const response: Response = {
+    statusCode: 200,
   };
 
   return response;
@@ -245,13 +261,15 @@ export const requestReset: ActionHook = async (request: Request, actionContext: 
     email?: string;
   };
 
-  const accountRequestResetBody: AccountRequestResetBody = JSON.parse(request.body);
-
   const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
+  const emailApi = new EmailApi();
+
+  const accountRequestResetBody: AccountRequestResetBody = JSON.parse(request.body);
 
   const passwordResetToken = await accountApi.generatePasswordResetToken(accountRequestResetBody.email);
 
-  // TODO: send email to user with token info
+  await emailApi.sendPasswordResetEmail(passwordResetToken.confirmationToken, accountRequestResetBody.email);
+
   return {
     statusCode: 200,
     body: JSON.stringify({}),

@@ -4,6 +4,7 @@ import {
   CustomerDraft,
   CustomerUpdate,
   CustomerUpdateAction,
+  CustomerToken,
 } from '@commercetools/platform-sdk/dist/declarations/src/generated/models/customer';
 import { AccountMapper } from './mappers/AccontMapper';
 import { BaseAddress } from '@commercetools/platform-sdk/dist/declarations/src/generated/models/common';
@@ -79,20 +80,11 @@ export class AccountApi extends BaseApi {
           throw error;
         });
 
-      const token = await this.getApiForProject()
-        .customers()
-        .emailToken()
-        .post({
-          body: {
-            id: account.accountId,
-            ttlMinutes: 2 * 7 * 24 * 60,
-          },
-        })
-        .execute();
+      const token = await this.generateToken(account);
 
-      if (token.body) {
-        account.confirmationToken = token.body.value;
-        account.tokenValidUntil = new Date(token.body.expiresAt);
+      if (token) {
+        account.confirmationToken = token.value;
+        account.tokenValidUntil = new Date(token.expiresAt);
       }
 
       return account;
@@ -100,6 +92,21 @@ export class AccountApi extends BaseApi {
       //TODO: better error, get status code etc...
       throw new Error(`create failed. ${error}`);
     }
+  };
+
+  generateToken: (account: Account) => Promise<CustomerToken> = async (account: Account) => {
+    const token = await this.getApiForProject()
+      .customers()
+      .emailToken()
+      .post({
+        body: {
+          id: account.accountId,
+          ttlMinutes: 2 * 7 * 24 * 60,
+        },
+      })
+      .execute();
+
+    return token.body;
   };
 
   confirmEmail: (token: string) => Promise<Account> = async (token: string) => {
@@ -123,7 +130,7 @@ export class AccountApi extends BaseApi {
         });
     } catch (error) {
       //TODO: better error, get status code etc...
-      throw new Error(`resetPassword failed. ${error}`);
+      throw new Error(`Confirm email failed. ${error}`);
     }
   };
 
@@ -170,8 +177,11 @@ export class AccountApi extends BaseApi {
           throw new Error(`Failed to login account  ${account.email}.`);
         });
 
-      if (account.confirmed === undefined) {
-        throw new Error(`Your email address ${account.email} was not yet verified.`);
+      if (!account.confirmed) {
+        const token = await this.generateToken(account);
+        account.confirmationToken = token.value;
+        account.tokenValidUntil = new Date(token.expiresAt);
+        throw new Error(`Your account ${account.email} is not activated yet!`);
       }
 
       return account;

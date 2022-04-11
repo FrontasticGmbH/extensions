@@ -188,7 +188,7 @@ export default {
           return {
             dataSourcePayload: {
               ok: false,
-              error: reason.toString(),
+              error: reason?.toString(),
             },
           } as DataSourceResult;
         });
@@ -233,7 +233,7 @@ export default {
           return {
             dataSourcePayload: {
               ok: false,
-              error: reason.toString(),
+              error: reason?.toString(),
             },
           } as DataSourceResult;
         });

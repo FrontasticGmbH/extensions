@@ -200,7 +200,6 @@ export const getOrders: ActionHook = async (request: Request, actionContext: Act
       ...request.sessionData,
     },
   };
-
   return response;
 };
 

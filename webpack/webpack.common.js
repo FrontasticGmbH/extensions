@@ -1,4 +1,5 @@
 var path = require('path');
+const Dotenv = require('dotenv-webpack');
 
 module.exports = {
     target: 'node',
@@ -43,4 +44,5 @@ module.exports = {
         library: "hooksImported",
         libraryTarget: "umd"
     },
+    plugins: [new Dotenv({ path: path.resolve(__dirname, '..', '.env') })],
 };

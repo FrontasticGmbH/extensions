@@ -91,14 +91,15 @@ export class ProductMapper {
     const { price, discountedPrice, discounts } = ProductMapper.extractPriceAndDiscounts(commercetoolsVariant, locale);
 
     return {
-      id: commercetoolsVariant.id.toString(),
-      sku: commercetoolsVariant.sku.toString(),
+      id: commercetoolsVariant.id?.toString(),
+      sku: commercetoolsVariant.sku?.toString(),
       images: commercetoolsVariant.images.map((image) => image.url),
       groupId: attributes?.baseId || undefined,
       attributes: attributes,
       price: price,
       discountedPrice: discountedPrice,
       discounts: discounts,
+      isOnStock: commercetoolsVariant.availability?.isOnStock || undefined,
     } as Variant;
   };
 
@@ -271,6 +272,7 @@ export class ProductMapper {
     commercetoolsProductTypes: CommercetoolsProductType[],
     locale: Locale,
   ): FacetDefinition[] {
+    const facetDefinitionsIndex: { [key: string]: FacetDefinition } = {};
     const facetDefinitions: FacetDefinition[] = [];
 
     commercetoolsProductTypes?.forEach((productType) => {
@@ -279,12 +281,18 @@ export class ProductMapper {
           return;
         }
 
-        facetDefinitions.push({
+        const facetDefinition: FacetDefinition = {
           attributeType: attribute.type.name,
           attributeId: `variants.attributes.${attribute.name}`,
-        });
+        };
+
+        facetDefinitionsIndex[facetDefinition.attributeId] = facetDefinition;
       });
     });
+
+    for (const [attributeId, facetDefinition] of Object.entries(facetDefinitionsIndex)) {
+      facetDefinitions.push(facetDefinition);
+    }
 
     return facetDefinitions;
   }
