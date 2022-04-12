@@ -131,22 +131,17 @@ export const register: ActionHook = async (request: Request, actionContext: Acti
 
   const accountData = mapRequestToAccount(request);
 
-  const cart = await CartFetcher.fetchCart(request, actionContext);
+  const cart = await CartFetcher.fetchCart(request, actionContext).catch(() => undefined);
 
-  let account = await accountApi.create(accountData, cart);
+  const account = await accountApi.create(accountData, cart);
 
   await emailApi.sendVerificationEmail(account);
 
-  // TODO: do we need to log in the account after creation?
-  // TODO: handle exception when customer can't login if email is not confirmed
-  account = await loginAccount(request, actionContext, accountData);
-
   const response: Response = {
     statusCode: 200,
-    body: JSON.stringify(account),
+    body: JSON.stringify({ accountId: account.accountId }),
     sessionData: {
       ...request.sessionData,
-      account: account,
     },
   };
 
