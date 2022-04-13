@@ -9,6 +9,9 @@ export class EmailApi {
   //sender email
   sender: string;
 
+  //client host
+  client_host: string;
+
   constructor(credentials: {
     host: string;
     port: number;
@@ -16,7 +19,10 @@ export class EmailApi {
     user: string;
     password: string;
     sender: string;
+    client_host: string;
   }) {
+    //set client host
+    this.client_host = credentials.client_host;
     //set sender email
     this.sender = credentials.sender;
     //initialize transporter
