@@ -51,6 +51,7 @@ export class EmailApi {
   }
 
   async sendVerificationEmail(account: Account) {
+    if (!account.confirmationToken) return; //no valid confirmation token
     //Verification url
     const url = this.getUrl(account.confirmationToken, 'verify');
     //message content
@@ -66,13 +67,11 @@ export class EmailApi {
         subject: 'Account Verification',
         html,
       });
-    }
-    catch (error) {}
-
-    return url
+    } catch (error) {}
   }
 
   async sendPasswordResetEmail(token: string, email: string) {
+    if (!token) return; //not a valid token
     //Password reset URL
     const url = this.getUrl(token, 'reset');
     //message content
