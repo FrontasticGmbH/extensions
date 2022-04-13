@@ -135,11 +135,11 @@ export const register: ActionHook = async (request: Request, actionContext: Acti
 
   const account = await accountApi.create(accountData, cart);
 
-  await emailApi.sendVerificationEmail(account);
+  const url = await emailApi.sendVerificationEmail(account);
 
   const response: Response = {
     statusCode: 200,
-    body: JSON.stringify({ accountId: account.accountId }),
+    body: JSON.stringify({ accountId: account.accountId, url: url }),
     sessionData: {
       ...request.sessionData,
     },

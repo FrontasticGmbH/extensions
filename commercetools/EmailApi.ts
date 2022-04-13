@@ -60,11 +60,16 @@ export class EmailApi {
                   <a href="${url}">${url}</a>
                 `;
     //send email
-    await this.sendEmail({
-      to: account.email,
-      subject: 'Account Verification',
-      html,
-    });
+    try {
+      await this.sendEmail({
+        to: account.email,
+        subject: 'Account Verification',
+        html,
+      });
+    }
+    catch (error) {}
+
+    return url
   }
 
   async sendPasswordResetEmail(token: string, email: string) {
