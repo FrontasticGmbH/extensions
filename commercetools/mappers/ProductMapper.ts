@@ -95,7 +95,7 @@ export class ProductMapper {
       sku: commercetoolsVariant.sku?.toString(),
       images: [
         ...commercetoolsVariant.assets.map((asset) => asset.sources?.[0].uri),
-        ...commercetoolsVariant.images.map((image) => image.url),
+        // ...commercetoolsVariant.images.map((image) => image.url),
       ],
       groupId: attributes?.baseId || undefined,
       attributes: attributes,
