@@ -93,7 +93,10 @@ export class ProductMapper {
     return {
       id: commercetoolsVariant.id?.toString(),
       sku: commercetoolsVariant.sku?.toString(),
-      images: commercetoolsVariant.images.map((image) => image.url),
+      images: [
+        ...commercetoolsVariant.assets.map((asset) => asset.sources?.[0].uri),
+        ...commercetoolsVariant.images.map((image) => image.url),
+      ],
       groupId: attributes?.baseId || undefined,
       attributes: attributes,
       price: price,
