@@ -6,15 +6,27 @@ export class EmailApi {
   //email transporter
   transport: nodemailer.Transporter<SMTPTransport.SentMessageInfo>;
 
-  constructor() {
+  //sender email
+  sender: string;
+
+  constructor(credentials: {
+    host: string;
+    port: number;
+    encryption: string;
+    user: string;
+    password: string;
+    sender: string;
+  }) {
+    //set sender email
+    this.sender = credentials.sender;
     //initialize transporter
     this.transport = nodemailer.createTransport({
-      host: process.env.smtp_host,
-      port: +process.env.smtp_port,
-      secure: process.env.smtp_port == '465',
+      host: credentials.host,
+      port: +credentials.port,
+      secure: credentials.port == 465,
       auth: {
-        user: process.env.smtp_user,
-        pass: process.env.smtp_password,
+        user: credentials.user,
+        pass: credentials.password,
       },
     });
   }
@@ -45,7 +57,7 @@ export class EmailApi {
   }
 
   async sendEmail(data: { to: string; subject?: string; text?: string; html?: string }) {
-    const from = 'no-reply@frontastic.cloud';
+    const from = this.sender;
     const { to, text, html, subject } = data;
     return await this.transport.sendMail({ from, to, subject, text, html });
   }

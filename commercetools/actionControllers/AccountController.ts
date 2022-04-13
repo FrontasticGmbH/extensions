@@ -127,7 +127,7 @@ export const getAccount: ActionHook = async (request: Request, actionContext: Ac
 
 export const register: ActionHook = async (request: Request, actionContext: ActionContext) => {
   const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
-  const emailApi = new EmailApi();
+  const emailApi = new EmailApi(actionContext.frontasticContext.project.configuration.smtp);
 
   const accountData = mapRequestToAccount(request);
 
@@ -151,7 +151,7 @@ export const register: ActionHook = async (request: Request, actionContext: Acti
 export const resendVerificationEmail: ActionHook = async (request: Request, actionContext: ActionContext) => {
   const data = JSON.parse(request.body) as Account;
 
-  const emailApi = new EmailApi();
+  const emailApi = new EmailApi(actionContext.frontasticContext.project.configuration.smtp);
 
   const account = await loginAccount(request, actionContext, data);
 
@@ -257,7 +257,7 @@ export const requestReset: ActionHook = async (request: Request, actionContext: 
   };
 
   const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
-  const emailApi = new EmailApi();
+  const emailApi = new EmailApi(actionContext.frontasticContext.project.configuration.smtp);
 
   const accountRequestResetBody: AccountRequestResetBody = JSON.parse(request.body);
 
