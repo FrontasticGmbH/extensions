@@ -1,8 +1,9 @@
+import now from "performance-now";
 export class Guid {
   static newGuid = (noHyphens?: boolean) => {
     let d = new Date().getTime();
-    if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
-      d += performance.now();
+    if (typeof now === 'function') {
+      d += now();
     }
 
     const shellGuid = noHyphens ? 'xxxxxxxxxxxx4xxxyxxxxxxxxxxxxxxx' : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
