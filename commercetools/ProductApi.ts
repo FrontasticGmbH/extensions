@@ -160,7 +160,7 @@ export class ProductApi extends BaseApi {
       const filterFields = ProductMapper.commercetoolsProductTypesToFilterFields(response.body.results, locale);
 
       filterFields.push({
-        field: 'categories.id',
+        field: 'categoryId',
         type: FilterFieldTypes.ENUM,
         values: await this.queryCategories({ limit: 250 }).then((result) => {
           return (result.items as Category[]).map((item) => {
