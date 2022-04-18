@@ -40,12 +40,6 @@
           "field": "productFilters",
           "type": "dynamic-filter",
           "dynamicFilterEndpoint": "/frontastic/action/product/searchableAttributes"
-        },
-        {
-          "label": "Category filters",
-          "field": "categoryFilters",
-          "type": "dynamic-filter",
-          "dynamicFilterEndpoint": "/frontastic/action/product/searchableCategories"
         }
       ]
     }
