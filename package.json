@@ -1,9 +1,7 @@
 {
     "name": "@frontastic/extensions",
     "version": "1.0.0-alpha",
-    "description": "TODO",
-    "license": "UNLICENSED",
-    "private": true,
+    "license": "MIT",
     "main": "./index.ts",
     "scripts": {
         "extensions:watch": "webpack --watch --config webpack/webpack.dev.js",
