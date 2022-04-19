@@ -202,15 +202,19 @@ export class ProductMapper {
     return { price, discountedPrice, discounts };
   }
 
-  static commercetoolsMoneyToMoney(commercetoolsMoney: CommercetoolsMoney | TypedMoney): Money {
+  static commercetoolsMoneyToMoney(commercetoolsMoney: CommercetoolsMoney | TypedMoney): Money | undefined {
+    if (commercetoolsMoney === undefined) {
+      return undefined;
+    }
+
     return {
       fractionDigits:
-        commercetoolsMoney?.hasOwnProperty('fractionDigits') &&
+        commercetoolsMoney.hasOwnProperty('fractionDigits') &&
         (commercetoolsMoney as TypedMoney).fractionDigits !== undefined
           ? (commercetoolsMoney as TypedMoney).fractionDigits
           : 2,
-      centAmount: commercetoolsMoney?.centAmount,
-      currencyCode: commercetoolsMoney?.currencyCode,
+      centAmount: commercetoolsMoney.centAmount,
+      currencyCode: commercetoolsMoney.currencyCode,
     };
   }
 
