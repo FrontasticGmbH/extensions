@@ -205,12 +205,12 @@ export class ProductMapper {
   static commercetoolsMoneyToMoney(commercetoolsMoney: CommercetoolsMoney | TypedMoney): Money {
     return {
       fractionDigits:
-        commercetoolsMoney.hasOwnProperty('fractionDigits') &&
+        commercetoolsMoney?.hasOwnProperty('fractionDigits') &&
         (commercetoolsMoney as TypedMoney).fractionDigits !== undefined
           ? (commercetoolsMoney as TypedMoney).fractionDigits
           : 2,
-      centAmount: commercetoolsMoney.centAmount,
-      currencyCode: commercetoolsMoney.currencyCode,
+      centAmount: commercetoolsMoney?.centAmount,
+      currencyCode: commercetoolsMoney?.currencyCode,
     };
   }
 
@@ -239,15 +239,15 @@ export class ProductMapper {
   ): FilterField {
     let commercetoolsAttributeType = commercetoolsAttributeDefinition.type.name;
 
-    let commercetoolsAttributeValues = commercetoolsAttributeDefinition.type.hasOwnProperty('values')
+    let commercetoolsAttributeValues = commercetoolsAttributeDefinition.type?.hasOwnProperty('values')
       ? (commercetoolsAttributeDefinition.type as AttributeEnumType | AttributeLocalizedEnumType).values
       : [];
 
-    if (commercetoolsAttributeType === 'set' && commercetoolsAttributeDefinition.type.hasOwnProperty('elementType')) {
+    if (commercetoolsAttributeType === 'set' && commercetoolsAttributeDefinition.type?.hasOwnProperty('elementType')) {
       const elementType: AttributeType = (commercetoolsAttributeDefinition.type as AttributeSetType).elementType;
 
       commercetoolsAttributeType = elementType.name;
-      commercetoolsAttributeValues = elementType.hasOwnProperty('values')
+      commercetoolsAttributeValues = elementType?.hasOwnProperty('values')
         ? (elementType as AttributeEnumType | AttributeLocalizedEnumType).values
         : [];
     }
