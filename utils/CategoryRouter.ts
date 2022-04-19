@@ -2,9 +2,9 @@ import { Context, Request } from '@frontastic/extension-types';
 import { ProductApi } from '../commercetools/ProductApi';
 import { CategoryQuery } from '../../types/query/CategoryQuery';
 import { Category } from '../../types/product/Category';
-import { ProductQuery } from '../../types/query/ProductQuery';
 import { getLocale, getPath } from './Request';
 import { Result } from '../../types/product/Result';
+import { ProductQueryFactory } from './ProductQueryFactory';
 
 export class CategoryRouter {
   static identifyFrom(request: Request) {
@@ -15,10 +15,8 @@ export class CategoryRouter {
     return false;
   }
 
-
   static loadFor = async (request: Request, frontasticContext: Context): Promise<Result> => {
     const productApi = new ProductApi(frontasticContext, getLocale(request));
-    const offset = request.query.cursor
     const urlMatches = getPath(request)?.match(/[^\/]+/);
 
     if (urlMatches) {
@@ -26,17 +24,16 @@ export class CategoryRouter {
         slug: urlMatches[0],
       };
 
-      const categoryQueryResult = await productApi.queryCategories(categoryQuery)
-      if(categoryQueryResult.items.length == 0) return null
+      const categoryQueryResult = await productApi.queryCategories(categoryQuery);
 
-      const category = (categoryQueryResult.items[0] as Category).categoryId
-            
-      const productQuery: ProductQuery = {
-        category,
-        cursor: offset
-      }
+      if (categoryQueryResult.items.length == 0) return null;
+      request.query.category = (categoryQueryResult.items[0] as Category).categoryId;
 
-      return (await productApi.query(productQuery))
+      const productQuery = ProductQueryFactory.queryFromParams({
+        ...request,
+      });
+
+      return await productApi.query(productQuery);
     }
 
     return null;

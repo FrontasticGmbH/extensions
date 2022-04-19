@@ -12,6 +12,7 @@
         "ts-watch": "tsc -watch --noEmit",
         "lint": "eslint .",
         "lint:fix": "eslint --fix .",
+        "format":"prettier --write \"**/*.ts\"",
         "test": "jest"
     },
     "dependencies": {
