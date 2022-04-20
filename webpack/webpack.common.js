@@ -41,7 +41,7 @@ module.exports = {
     output: {
         filename: 'bundle.min.js',
         path: path.resolve(__dirname, '../build'),
-        library: "hooksImported",
+        library: "extension-commercetools",
         libraryTarget: "umd"
     },
     plugins: [new Dotenv({ path: path.resolve(__dirname, '..', '.env') })],
