@@ -127,26 +127,21 @@ export const getAccount: ActionHook = async (request: Request, actionContext: Ac
 
 export const register: ActionHook = async (request: Request, actionContext: ActionContext) => {
   const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
-  const emailApi = new EmailApi();
+  const emailApi = new EmailApi(actionContext.frontasticContext.project.configuration.smtp);
 
   const accountData = mapRequestToAccount(request);
 
-  const cart = await CartFetcher.fetchCart(request, actionContext);
+  const cart = await CartFetcher.fetchCart(request, actionContext).catch(() => undefined);
 
-  let account = await accountApi.create(accountData, cart);
+  const account = await accountApi.create(accountData, cart);
 
-  await emailApi.sendVerificationEmail(account);
-
-  // TODO: do we need to log in the account after creation?
-  // TODO: handle exception when customer can't login if email is not confirmed
-  account = await loginAccount(request, actionContext, accountData);
+  if (!account.confirmed) await emailApi.sendVerificationEmail(account);
 
   const response: Response = {
     statusCode: 200,
-    body: JSON.stringify(account),
+    body: JSON.stringify({ accountId: account.accountId }),
     sessionData: {
       ...request.sessionData,
-      account: account,
     },
   };
 
@@ -156,7 +151,7 @@ export const register: ActionHook = async (request: Request, actionContext: Acti
 export const resendVerificationEmail: ActionHook = async (request: Request, actionContext: ActionContext) => {
   const data = JSON.parse(request.body) as Account;
 
-  const emailApi = new EmailApi();
+  const emailApi = new EmailApi(actionContext.frontasticContext.project.configuration.smtp);
 
   const account = await loginAccount(request, actionContext, data);
 
@@ -262,7 +257,7 @@ export const requestReset: ActionHook = async (request: Request, actionContext: 
   };
 
   const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
-  const emailApi = new EmailApi();
+  const emailApi = new EmailApi(actionContext.frontasticContext.project.configuration.smtp);
 
   const accountRequestResetBody: AccountRequestResetBody = JSON.parse(request.body);
 

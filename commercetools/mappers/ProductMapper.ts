@@ -93,7 +93,10 @@ export class ProductMapper {
     return {
       id: commercetoolsVariant.id?.toString(),
       sku: commercetoolsVariant.sku?.toString(),
-      images: commercetoolsVariant.images.map((image) => image.url),
+      images: [
+        ...commercetoolsVariant.assets.map((asset) => asset.sources?.[0].uri),
+        ...commercetoolsVariant.images.map((image) => image.url),
+      ],
       groupId: attributes?.baseId || undefined,
       attributes: attributes,
       price: price,
@@ -199,7 +202,11 @@ export class ProductMapper {
     return { price, discountedPrice, discounts };
   }
 
-  static commercetoolsMoneyToMoney(commercetoolsMoney: CommercetoolsMoney | TypedMoney): Money {
+  static commercetoolsMoneyToMoney(commercetoolsMoney: CommercetoolsMoney | TypedMoney): Money | undefined {
+    if (commercetoolsMoney === undefined) {
+      return undefined;
+    }
+
     return {
       fractionDigits:
         commercetoolsMoney.hasOwnProperty('fractionDigits') &&
@@ -236,15 +243,15 @@ export class ProductMapper {
   ): FilterField {
     let commercetoolsAttributeType = commercetoolsAttributeDefinition.type.name;
 
-    let commercetoolsAttributeValues = commercetoolsAttributeDefinition.type.hasOwnProperty('values')
+    let commercetoolsAttributeValues = commercetoolsAttributeDefinition.type?.hasOwnProperty('values')
       ? (commercetoolsAttributeDefinition.type as AttributeEnumType | AttributeLocalizedEnumType).values
       : [];
 
-    if (commercetoolsAttributeType === 'set' && commercetoolsAttributeDefinition.type.hasOwnProperty('elementType')) {
+    if (commercetoolsAttributeType === 'set' && commercetoolsAttributeDefinition.type?.hasOwnProperty('elementType')) {
       const elementType: AttributeType = (commercetoolsAttributeDefinition.type as AttributeSetType).elementType;
 
       commercetoolsAttributeType = elementType.name;
-      commercetoolsAttributeValues = elementType.hasOwnProperty('values')
+      commercetoolsAttributeValues = elementType?.hasOwnProperty('values')
         ? (elementType as AttributeEnumType | AttributeLocalizedEnumType).values
         : [];
     }

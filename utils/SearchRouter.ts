@@ -7,7 +7,7 @@ import { getPath, getLocale } from './Request';
 
 export class SearchRouter {
   static identifyFrom(request: Request) {
-    const urlMatches = getPath(request)?.match(/\/search/);
+    const urlMatches = getPath(request)?.match(/^\/search/);
 
     if (urlMatches) {
       return true;
@@ -26,7 +26,6 @@ export class SearchRouter {
         ...request,
         query: { ...request.query, query: request.query.query || request.query.q },
       });
-
       return productApi.query(productQuery);
     }
 

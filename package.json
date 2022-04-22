@@ -1,9 +1,7 @@
 {
-    "name": "@demo_swiss/backend",
-    "version": "0.0.1",
-    "description": "TODO",
-    "license": "UNLICENSED",
-    "private": true,
+    "name": "@frontastic/extensions",
+    "version": "1.0.0-alpha.3",
+    "license": "MIT",
     "main": "./index.ts",
     "scripts": {
         "extensions:watch": "webpack --watch --config webpack/webpack.dev.js",
@@ -12,6 +10,7 @@
         "ts-watch": "tsc -watch --noEmit",
         "lint": "eslint .",
         "lint:fix": "eslint --fix .",
+        "format":"prettier --write \"**/*.ts\"",
         "test": "jest"
     },
     "dependencies": {
@@ -23,7 +22,8 @@
         "core-js": "^3.20.0",
         "nodemailer": "^6.7.3",
         "qs": "^6.10.1",
-        "typescript": "^4.3.5"
+        "typescript": "^4.3.5",
+        "performance-now": "^2.1.0"
     },
     "devDependencies": {
         "@babel/core": "^7.16.5",

@@ -1,8 +1,8 @@
 {
   "customDataSourceType": "frontastic/product",
-  "name": "Product Next",
-  "category": "Content",
-  "icon": "source",
+  "name": "Single product",
+  "category": "Products",
+  "icon": "picture_in_picture",
   "schema": [
     {
       "name": "Product selection",

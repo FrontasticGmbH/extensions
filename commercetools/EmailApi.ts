@@ -6,15 +6,33 @@ export class EmailApi {
   //email transporter
   transport: nodemailer.Transporter<SMTPTransport.SentMessageInfo>;
 
-  constructor() {
+  //sender email
+  sender: string;
+
+  //client host
+  client_host: string;
+
+  constructor(credentials: {
+    host: string;
+    port: number;
+    encryption: string;
+    user: string;
+    password: string;
+    sender: string;
+    client_host: string;
+  }) {
+    //set client host
+    this.client_host = credentials.client_host;
+    //set sender email
+    this.sender = credentials.sender;
     //initialize transporter
     this.transport = nodemailer.createTransport({
-      host: process.env.smtp_host,
-      port: +process.env.smtp_port,
-      secure: process.env.smtp_port == '465',
+      host: credentials.host,
+      port: +credentials.port,
+      secure: credentials.port == 465,
       auth: {
-        user: process.env.smtp_user,
-        pass: process.env.smtp_password,
+        user: credentials.user,
+        pass: credentials.password,
       },
     });
   }
@@ -45,12 +63,13 @@ export class EmailApi {
   }
 
   async sendEmail(data: { to: string; subject?: string; text?: string; html?: string }) {
-    const from = 'no-reply@frontastic.cloud';
+    const from = this.sender;
     const { to, text, html, subject } = data;
     return await this.transport.sendMail({ from, to, subject, text, html });
   }
 
   async sendVerificationEmail(account: Account) {
+    if (!account.confirmationToken) return; //no valid confirmation token
     //Verification url
     const url = this.getUrl(account.confirmationToken, 'verify');
     //message content
@@ -60,14 +79,17 @@ export class EmailApi {
                   <a href="${url}">${url}</a>
                 `;
     //send email
-    await this.sendEmail({
-      to: account.email,
-      subject: 'Account Verification',
-      html,
-    });
+    try {
+      await this.sendEmail({
+        to: account.email,
+        subject: 'Account Verification',
+        html,
+      });
+    } catch (error) {}
   }
 
   async sendPasswordResetEmail(token: string, email: string) {
+    if (!token) return; //not a valid token
     //Password reset URL
     const url = this.getUrl(token, 'reset');
     //message content
