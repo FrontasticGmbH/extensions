@@ -16,7 +16,7 @@ export class CartFetcher {
       try {
         return await cartApi.getById(request.sessionData.cartId);
       } catch (error) {
-        console.log(`Error fetching the cart ${request.sessionData.cartId}, creating a new one. ${error}`);
+        console.info(`Error fetching the cart ${request.sessionData.cartId}, creating a new one. ${error}`);
       }
     }
 
