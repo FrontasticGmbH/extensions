@@ -32,12 +32,12 @@ type AccountChangePasswordBody = {
   newPassword: string;
 };
 
-async function loginAccount(request: Request, actionContext: ActionContext, account: Account) {
+async function loginAccount(request: Request, actionContext: ActionContext, account: Account, reverify = false) {
   const accountApi = new AccountApi(actionContext.frontasticContext, getLocale(request));
 
   const cart = await CartFetcher.fetchCart(request, actionContext);
 
-  return await accountApi.login(account, cart);
+  return await accountApi.login(account, cart, reverify);
 }
 
 function assertIsAuthenticated(request: Request) {
@@ -153,7 +153,9 @@ export const resendVerificationEmail: ActionHook = async (request: Request, acti
 
   const emailApi = new EmailApi(actionContext.frontasticContext.project.configuration.smtp);
 
-  const account = await loginAccount(request, actionContext, data);
+  const reverify = true; //Will not login the account instead will send a reverification email..
+
+  const account = await loginAccount(request, actionContext, data, reverify);
 
   await emailApi.sendVerificationEmail(account);
 
