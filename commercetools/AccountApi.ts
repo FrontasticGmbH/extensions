@@ -171,7 +171,7 @@ export class AccountApi extends BaseApi {
              * The cart might already belong to another user, so we try to log in without the cart.
              */
             if (cart) {
-              return this.login(account, undefined);
+              return this.login(account, undefined, reverify);
             }
           }
 
