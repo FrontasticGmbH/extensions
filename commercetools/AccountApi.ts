@@ -134,9 +134,10 @@ export class AccountApi extends BaseApi {
     }
   };
 
-  login: (account: Account, cart: Cart | undefined) => Promise<Account> = async (
+  login: (account: Account, cart: Cart | undefined, reverify?: boolean) => Promise<Account> = async (
     account: Account,
     cart: Cart | undefined,
+    reverify = false,
   ) => {
     try {
       const locale = await this.getCommercetoolsLocal();
@@ -170,17 +171,18 @@ export class AccountApi extends BaseApi {
              * The cart might already belong to another user, so we try to log in without the cart.
              */
             if (cart) {
-              return this.login(account, undefined);
+              return this.login(account, undefined, reverify);
             }
           }
 
           throw new Error(`Failed to login account  ${account.email}.`);
         });
 
-      if (!account.confirmed) {
+      if (reverify) {
         const token = await this.generateToken(account);
         account.confirmationToken = token.value;
         account.tokenValidUntil = new Date(token.expiresAt);
+      } else if (!account.confirmed) {
         throw new Error(`Your account ${account.email} is not activated yet!`);
       }
 
