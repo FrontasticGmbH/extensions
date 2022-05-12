@@ -1,11 +1,5 @@
-# extension-commercetools Changelog
+We add any updates to this list as soon as any changes are released.
 
-## `1.0.0-alpha.3` (2022-04-21)
+## Version 1.0.0-alpha.3 (2022-04-21)
 
-## `1.0.0-alpha.1` (2022-04-19)
-
-## `1.0.0-alpha` (2022-04-19)
-
-## `1.0.0-alpha` (2022-04-19)
-
-## `1.0.0-alpha` (2022-04-19)
+- Initial stable release
