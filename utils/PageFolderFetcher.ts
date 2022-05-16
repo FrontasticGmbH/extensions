@@ -1,45 +1,29 @@
 import { Request } from '@frontastic/extension-types';
 import { getLocale, getPath } from './Request';
 import axios from 'axios';
-import { ArtistSettings } from '../../types/umg/ArtistSettings';
 
-export class ProductFolderFetcher {
-  static fetchArtistSettingsFromPageFolderConfig = async (
-    request: Request,
-    artistPath?: string,
-  ): Promise<ArtistSettings> => {
-    // TODO: get default locale if empty from request
-    const locale = getLocale(request) ?? 'en_GB';
+export class PageFolderFetcher {
+  /**
+   * If passed, the path should start with '/'.
+   */
+  static fetchPageFolderConfiguration = async (request: Request, path?: string): Promise<any> => {
+    // TODO: get default locale if empty locale from request
+    const locale = getLocale(request) ?? 'de_CH';
 
-    // If artistPath empty, try to get it from request.
-    artistPath = artistPath ?? getPath(request)?.match(/[^\/]+/)[0];
+    // If path is empty, try to get the first position of the request path.
+    path = path ?? '/' + getPath(request)?.match(/[^\/]+/)[0];
 
-    if (artistPath === undefined) {
+    if (path === undefined) {
       return undefined;
     }
 
-    const url = `https://next-frontasticbeta.frontastic.io/frontastic/page?path=/${artistPath}&locale=${locale}`;
+    // TODO: get host where Page Folder Fetcher can be fetched
+    const url = `https://${request.hostname}/frontastic/page?path=${path}&locale=${locale}`;
 
     return await axios
       .get(url)
       .then((response) => {
-        const artistSettings: ArtistSettings = {
-          artistPath: artistPath,
-          artistStoreId: response.data?.pageFolder?.configuration?.artistStoreId
-            ? response.data?.pageFolder.configuration?.artistStoreId
-            : undefined,
-          customerGroup: response.data?.pageFolder?.configuration?.customerGroup
-            ? response.data?.pageFolder.configuration?.customerGroup
-            : undefined,
-          supplyChannel: response.data?.pageFolder?.configuration?.supplyChannel
-            ? response.data?.pageFolder.configuration?.supplyChannel
-            : undefined,
-          distributionChannel: response.data?.pageFolder?.configuration?.distributionChannel
-            ? response.data?.pageFolder.configuration?.distributionChannel
-            : undefined,
-        };
-
-        return artistSettings;
+        return response.data?.pageFolder?.configuration;
       })
       .catch((reason) => {
         console.error(reason);
