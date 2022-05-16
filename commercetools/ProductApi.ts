@@ -12,7 +12,7 @@ import { Category } from '../../types/product/Category';
 import { FacetDefinition } from '../../types/product/FacetDefinition';
 
 export class ProductApi extends BaseApi {
-  private getOffsetFromCursor = (cursor: string) => {
+  protected getOffsetFromCursor = (cursor: string) => {
     if (cursor === undefined) {
       return undefined;
     }

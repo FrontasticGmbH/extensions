@@ -560,7 +560,7 @@ export class CartApi extends BaseApi {
     }
   };
 
-  private async updateCart(cartId: string, cartUpdate: CartUpdate, locale: Locale): Promise<CommercetoolsCart> {
+  protected async updateCart(cartId: string, cartUpdate: CartUpdate, locale: Locale): Promise<CommercetoolsCart> {
     return await this.getApiForProject()
       .carts()
       .withId({
@@ -582,7 +582,7 @@ export class CartApi extends BaseApi {
       });
   }
 
-  private buildCartWithAvailableShippingMethods: (
+  protected buildCartWithAvailableShippingMethods: (
     commercetoolsCart: CommercetoolsCart,
     locale: Locale,
   ) => Promise<Cart> = async (commercetoolsCart: CommercetoolsCart, locale: Locale) => {
@@ -601,7 +601,7 @@ export class CartApi extends BaseApi {
     return cart;
   };
 
-  private assertCorrectLocale: (commercetoolsCart: CommercetoolsCart, locale: Locale) => Promise<Cart> = async (
+  protected assertCorrectLocale: (commercetoolsCart: CommercetoolsCart, locale: Locale) => Promise<Cart> = async (
     commercetoolsCart: CommercetoolsCart,
     locale: Locale,
   ) => {
@@ -632,7 +632,7 @@ export class CartApi extends BaseApi {
     return CartMapper.commercetoolsCartToCart(commercetoolsCart, locale);
   };
 
-  private recreate: (primaryCommercetoolsCart: CommercetoolsCart, locale: Locale) => Promise<Cart> = async (
+  protected recreate: (primaryCommercetoolsCart: CommercetoolsCart, locale: Locale) => Promise<Cart> = async (
     primaryCommercetoolsCart: CommercetoolsCart,
     locale: Locale,
   ) => {
@@ -733,7 +733,7 @@ export class CartApi extends BaseApi {
     return CartMapper.commercetoolsCartToCart(replicatedCommercetoolsCart, locale);
   };
 
-  private doesCartNeedLocaleUpdate: (commercetoolsCart: CommercetoolsCart, locale: Locale) => boolean = (
+  protected doesCartNeedLocaleUpdate: (commercetoolsCart: CommercetoolsCart, locale: Locale) => boolean = (
     commercetoolsCart: CommercetoolsCart,
     locale: Locale,
   ) => {
