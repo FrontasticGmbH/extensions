@@ -2,6 +2,10 @@ import { Request } from '@frontastic/extension-types';
 import { getLocale, getPath } from './Request';
 import axios from 'axios';
 
+/**
+ * PageFolderFetcher can be used on multi-store projects to fetch
+ * Page Folder Configuration when not available on the context.
+ */
 export class PageFolderFetcher {
   /**
    * If passed, the path should start with '/'.
