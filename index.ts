@@ -171,7 +171,7 @@ export default {
     // **************************
     // Docs examples
     // **************************
-    'example/star-wars-movie': async (
+    'example/star-wars/movie': async (
       config: DataSourceConfiguration,
       context: DataSourceContext,
     ): Promise<DataSourceResult> => {
@@ -193,13 +193,16 @@ export default {
           } as DataSourceResult;
         });
     },
-    'example/star-wars-character': (config: DataSourceConfiguration, context: DataSourceContext): DataSourceResult => {
+    'example/star-wars/character-search': (
+      config: DataSourceConfiguration,
+      context: DataSourceContext,
+    ): DataSourceResult => {
       console.log(config.configuration);
       return {
         dataSourcePayload: config.configuration,
       };
     },
-    'example/star-wars-character-search': async (
+    'example/star-wars/character-filter': async (
       config: DataSourceConfiguration,
       context: DataSourceContext,
     ): Promise<DataSourceResult> => {
@@ -259,10 +262,6 @@ export default {
             statusCode: 400,
           };
         }
-        // *****************
-        // REST API CALL:
-        // return await axios.get<Response>('https://swapi.dev/api/people/?search=' + request.query.search)
-        // *****************
         return await axios
           .post('https://frontastic-swapi-graphql.netlify.app/', {
             query: `{

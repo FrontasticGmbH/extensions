@@ -1,10 +1,10 @@
 {
-  "customDataSourceType": "example/star-wars-character-search",
-  "name": "Star wars character search from docs",
-  "category": "Content",
-  "icon": "source",
+  "customDataSourceType": "example/star-wars/character-search",
+  "name": "Star Wars Character Search",
+  "category": "Star Wars Documentation Examples",
+  "icon": "verified_user",
   "schema": [{
-    "name": "Character search",
+    "name": "Character Search",
     "fields": [
         {
             "label": "Filters",

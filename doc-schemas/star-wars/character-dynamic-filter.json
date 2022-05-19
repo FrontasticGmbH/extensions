@@ -1,8 +1,8 @@
 {
-    "customDataSourceType": "example/star-wars-character",
-    "name": "Star wars character",
-    "category": "Content",
-    "icon": "source",
+    "customDataSourceType": "example/star-wars/character-filter",
+    "name": "Star Wars Character Filter",
+    "category": "Star Wars Documentation Examples",
+    "icon": "verified_user",
     "schema": [
         {
             "name": "Character search",
