@@ -208,10 +208,18 @@ export default {
     ): Promise<DataSourceResult> => {
       const pageSize = context.request.query.pageSize || 10;
       const after = context.request.query.cursor || null;
+      const { characterFilters } = config.configuration;
+      const filters = characterFilters.filters.map((filter: any) => {
+        let value = characterFilters.values[filter.field];
+        if (typeof value !== 'number') {
+          value = `"${value}"`;
+        }
+        return `${filter.field}: ${value}`;
+      });
       return await axios
         .post('https://frontastic-swapi-graphql.netlify.app/', {
           query: `{
-            allPeople(first: ${pageSize}, after: ${JSON.stringify(after)}) {
+            allPeople(first: ${pageSize}, after: ${JSON.stringify(after)}, ${filters}) {
               totalCount
               pageInfo {
                 hasNextPage
@@ -220,6 +228,10 @@ export default {
               people {
                 id
                 name
+                height
+                hairColor
+                eyeColor
+                gender
                 species {
                   name
                 }

@@ -2,7 +2,7 @@
     "customDataSourceType": "example/star-wars/movie",
     "name": "Star Wars Movie",
     "category": "Star Wars Documentation Examples",
-    "icon": "verified_user",
+    "icon": "movie",
     "schema": [
         {
             "name": "Settings",

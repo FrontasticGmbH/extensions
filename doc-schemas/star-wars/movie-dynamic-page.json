@@ -2,7 +2,7 @@
   "dynamicPageType": "example/star-wars/movie-page",
   "name": "Star Wars Movie Dynamic Page",
   "category": "Star Wars Documentation Examples",
-  "icon": "verified_user",
+  "icon": "movie_filter",
   "dataSourceType": "example/star-wars/movie",
   "isMultiple": true
 }

@@ -2,7 +2,7 @@
   "customDataSourceType": "example/star-wars/character-search",
   "name": "Star Wars Character Search",
   "category": "Star Wars Documentation Examples",
-  "icon": "verified_user",
+  "icon": "search",
   "schema": [{
     "name": "Character Search",
     "fields": [
