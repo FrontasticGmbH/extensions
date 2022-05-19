@@ -23,7 +23,7 @@ export class WishlistMapper {
     commercetoolsLineItem: ShoppingListLineItem,
     locale: Locale,
   ): LineItem => {
-    let lineItem: LineItem = {
+    const lineItem: LineItem = {
       lineItemId: commercetoolsLineItem.id,
       name: commercetoolsLineItem.name[locale.language],
       type: 'variant',

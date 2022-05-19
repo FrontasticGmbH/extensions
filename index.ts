@@ -81,7 +81,6 @@ export default {
 
     const cartUrlMatches = getPath(request)?.match(/^\/cart/);
     if (cartUrlMatches) {
-      console.log('Matched cart page');
       return {
         dynamicPageType: 'frontastic-test/cart',
         dataSourcePayload: {

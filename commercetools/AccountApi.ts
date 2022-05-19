@@ -454,7 +454,7 @@ export class AccountApi extends BaseApi {
     }
   };
 
-  private extractAddresses(account: Account) {
+  protected extractAddresses(account: Account) {
     const commercetoolsAddresses: BaseAddress[] = [];
     const billingAddresses: number[] = [];
     const shippingAddresses: number[] = [];
@@ -486,7 +486,7 @@ export class AccountApi extends BaseApi {
     };
   }
 
-  private async fetchAccountVersion(account: Account): Promise<number | undefined> {
+  protected async fetchAccountVersion(account: Account): Promise<number | undefined> {
     const commercetoolsAccount = await this.getApiForProject()
       .customers()
       .withId({ ID: account.accountId })
@@ -496,7 +496,7 @@ export class AccountApi extends BaseApi {
     return commercetoolsAccount.body?.version;
   }
 
-  private async updateAccount(account: Account, customerUpdateActions: CustomerUpdateAction[]) {
+  protected async updateAccount(account: Account, customerUpdateActions: CustomerUpdateAction[]) {
     const locale = await this.getCommercetoolsLocal();
 
     const accountVersion = await this.fetchAccountVersion(account);
