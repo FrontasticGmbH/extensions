@@ -42,7 +42,6 @@ export default {
     // **************************
     // Identify Product
     if (ProductRouter.identifyFrom(request)) {
-      console.log('Identify Product');
       return ProductRouter.loadFor(request, context.frontasticContext).then((product: Product) => {
         if (product) {
           return {
