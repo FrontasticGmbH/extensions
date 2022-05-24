@@ -30,6 +30,7 @@ export class ProductApi extends BaseApi {
 
       const filterQuery: string[] = [];
       const filterFacets: string[] = [];
+      const sortAttributes: string[] = [];
 
       const facetDefinitions: FacetDefinition[] = [
         ...ProductMapper.commercetoolsProductTypesToFacetDefinitions(await this.getProductTypes(), locale),
@@ -91,8 +92,15 @@ export class ProductApi extends BaseApi {
         );
       }
 
+      if (productQuery.sortAttributes !== undefined) {
+        Object.keys(productQuery.sortAttributes).map((field, directionIndex) => {
+          sortAttributes.push(`${field} ${Object.values(productQuery.sortAttributes)[directionIndex]}`);
+        });
+      }
+
       const methodArgs = {
         queryArgs: {
+          sort: sortAttributes,
           limit: limit,
           offset: this.getOffsetFromCursor(productQuery.cursor),
           priceCurrency: locale.currency,
