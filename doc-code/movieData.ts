@@ -19,13 +19,13 @@ export const loadMovieData = async (movieId: string): Promise<MovieData | null> 
       query: '{film(id:"' + movieId + '") {id, title, episodeID, openingCrawl, releaseDate}}',
     })
     .then((response): MovieData => {
-      console.log(response.data);
       return {
         ...response.data,
         _url: '/movie/star-wars-episode-' + response.data.data.film.episodeID + '/' + response.data.data.film.id,
       } as MovieData;
     })
     .catch((reason) => {
+      console.log(reason);
       return null;
     });
 };

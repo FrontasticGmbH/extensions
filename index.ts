@@ -1,5 +1,4 @@
 import {
-  ActionContext,
   DataSourceConfiguration,
   DataSourceContext,
   DataSourceResult,
@@ -169,10 +168,7 @@ export default {
     // **************************
     // Docs examples
     // **************************
-    'example/star-wars/movie': async (
-      config: DataSourceConfiguration,
-      context: DataSourceContext,
-    ): Promise<DataSourceResult> => {
+    'example/star-wars/movie': async (config: DataSourceConfiguration): Promise<DataSourceResult> => {
       return await axios
         .post<DataSourceResult>('https://frontastic-swapi-graphql.netlify.app', {
           query: '{film(id:"' + config.configuration.movieId + '") {id, title, episodeID, openingCrawl, releaseDate}}',
@@ -191,10 +187,7 @@ export default {
           } as DataSourceResult;
         });
     },
-    'example/star-wars/character-search': (
-      config: DataSourceConfiguration,
-      context: DataSourceContext,
-    ): DataSourceResult => {
+    'example/star-wars/character-search': (config: DataSourceConfiguration): DataSourceResult => {
       console.log(config.configuration);
       return {
         dataSourcePayload: config.configuration,
@@ -265,7 +258,7 @@ export default {
     // Docs examples
     // **************************
     'star-wars': {
-      character: async (request: Request, actionContext: ActionContext): Promise<Response> => {
+      character: async (request: Request): Promise<Response> => {
         if (!request.query.search) {
           return {
             body: 'Missing search query',
@@ -311,7 +304,7 @@ export default {
             };
           });
       },
-      filters: async (request: Request, actionContext: ActionContext): Promise<Response> => {
+      filters: async (): Promise<Response> => {
         return await axios
           .post('https://frontastic-swapi-graphql.netlify.app/', {
             query: `{
@@ -325,13 +318,13 @@ export default {
           })
           .then((response) => {
             const { filter } = response.data?.data?.getAllPossiblePeopleFilters;
-            let responseData = filter.map((filter: any) => {
+            const responseData = filter.map((filter: any) => {
               return {
                 field: filter.name,
                 label: filter.name,
                 type: filter.type,
                 translatable: false,
-                values: filter.values?.map((val: String) => {
+                values: filter.values?.map((val: string) => {
                   return { name: val, value: val };
                 }),
               };
