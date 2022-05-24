@@ -1,5 +1,4 @@
 import {
-  ActionContext,
   DataSourceConfiguration,
   DataSourceContext,
   DataSourceResult,
@@ -169,12 +168,9 @@ export default {
     // **************************
     // Docs examples
     // **************************
-    'example/star-wars-movie': async (
-      config: DataSourceConfiguration,
-      context: DataSourceContext,
-    ): Promise<DataSourceResult> => {
+    'example/star-wars/movie': async (config: DataSourceConfiguration): Promise<DataSourceResult> => {
       return await axios
-        .post<DataSourceResult>('https://swapi-graphql.netlify.app/.netlify/functions/index', {
+        .post<DataSourceResult>('https://frontastic-swapi-graphql.netlify.app', {
           query: '{film(id:"' + config.configuration.movieId + '") {id, title, episodeID, openingCrawl, releaseDate}}',
         })
         .then((response): DataSourceResult => {
@@ -191,22 +187,30 @@ export default {
           } as DataSourceResult;
         });
     },
-    'example/star-wars-character': (config: DataSourceConfiguration, context: DataSourceContext): DataSourceResult => {
+    'example/star-wars/character-search': (config: DataSourceConfiguration): DataSourceResult => {
       console.log(config.configuration);
       return {
         dataSourcePayload: config.configuration,
       };
     },
-    'example/star-wars-character-search': async (
+    'example/star-wars/character-filter': async (
       config: DataSourceConfiguration,
       context: DataSourceContext,
     ): Promise<DataSourceResult> => {
       const pageSize = context.request.query.pageSize || 10;
       const after = context.request.query.cursor || null;
+      const { characterFilters } = config.configuration;
+      const filters = characterFilters.filters.map((filter: any) => {
+        let value = characterFilters.values[filter.field];
+        if (typeof value !== 'number') {
+          value = `"${value}"`;
+        }
+        return `${filter.field}: ${value}`;
+      });
       return await axios
-        .post('https://swapi-graphql.netlify.app/.netlify/functions/index', {
+        .post('https://frontastic-swapi-graphql.netlify.app/', {
           query: `{
-            allPeople(first: ${pageSize}, after: ${JSON.stringify(after)}) {
+            allPeople(first: ${pageSize}, after: ${JSON.stringify(after)}, ${filters}) {
               totalCount
               pageInfo {
                 hasNextPage
@@ -215,6 +219,10 @@ export default {
               people {
                 id
                 name
+                height
+                hairColor
+                eyeColor
+                gender
                 species {
                   name
                 }
@@ -250,16 +258,39 @@ export default {
     // Docs examples
     // **************************
     'star-wars': {
-      character: async (request: Request, actionContext: ActionContext): Promise<Response> => {
+      character: async (request: Request): Promise<Response> => {
         if (!request.query.search) {
           return {
-            body: JSON.stringify([]),
-            statusCode: 200,
+            body: 'Missing search query',
+            statusCode: 400,
           };
         }
-
         return await axios
-          .get<Response>('https://swapi.dev/api/people/?search=' + request.query.search)
+          .post('https://frontastic-swapi-graphql.netlify.app/', {
+            query: `{
+            allPeople(name: "${request.query.search}") {
+              totalCount
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              people {
+                id
+                name
+                height
+                mass
+                hairColor
+                skinColor
+                eyeColor
+                birthYear
+                gender
+                species {
+                  name
+                }
+              }
+            }
+          }`,
+          })
           .then((response) => {
             return {
               body: JSON.stringify(response.data),
@@ -273,23 +304,42 @@ export default {
             };
           });
       },
-      filters: (request: Request, actionContext: ActionContext): Response => {
-        return {
-          statusCode: 200,
-          body: JSON.stringify([
-            {
-              field: 'textSearch',
-              label: 'Text search',
-              type: 'text',
-              translatable: false,
-            },
-            {
-              field: 'lightSideOnly',
-              label: 'Only light side?',
-              type: 'boolean',
-            },
-          ]),
-        };
+      filters: async (): Promise<Response> => {
+        return await axios
+          .post('https://frontastic-swapi-graphql.netlify.app/', {
+            query: `{
+            getAllPossiblePeopleFilters {
+              filter {
+                name
+                type
+                values
+              }
+          }}`,
+          })
+          .then((response) => {
+            const { filter } = response.data?.data?.getAllPossiblePeopleFilters;
+            const responseData = filter.map((filter: any) => {
+              return {
+                field: filter.name,
+                label: filter.name,
+                type: filter.type,
+                translatable: false,
+                values: filter.values?.map((val: string) => {
+                  return { name: val, value: val };
+                }),
+              };
+            });
+            return {
+              body: JSON.stringify(responseData),
+              statusCode: 200,
+            };
+          })
+          .catch((reason) => {
+            return {
+              body: reason.body,
+              statusCode: 500,
+            };
+          });
       },
     },
   },

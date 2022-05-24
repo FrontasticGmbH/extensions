@@ -1,8 +1,8 @@
 {
-    "customDataSourceType": "example/star-wars-movie",
-    "name": "Star wars movie",
-    "category": "Content",
-    "icon": "source",
+    "customDataSourceType": "example/star-wars/movie",
+    "name": "Star Wars Movie",
+    "category": "Star Wars Documentation Examples",
+    "icon": "movie",
     "schema": [
         {
             "name": "Settings",
