@@ -469,6 +469,8 @@ export class ProductMapper {
       min: facetResult.ranges[0].min,
       max: facetResult.ranges[0].max,
       selected: facetQuery !== undefined,
+      minSelected: facetQuery ? facetQuery.min : undefined,
+      maxSelected: facetQuery ? facetQuery.max : undefined,
     };
 
     return rangeFacet;
