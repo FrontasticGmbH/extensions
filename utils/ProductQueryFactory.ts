@@ -73,18 +73,6 @@ export class ProductQueryFactory {
     }
 
     /**
-     * Map price
-     */
-    if (queryParams?.minPrice || queryParams?.maxPrice) {
-      filters.push({
-        identifier: 'price',
-        type: FilterTypes.RANGE,
-        min: queryParams?.minPrice || undefined,
-        max: queryParams?.maxPrice || undefined,
-      } as RangeFilter);
-    }
-
-    /**
      * Map filters and category
      *
      * Since filters and values might be returned in separated arrays we are using
