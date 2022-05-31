@@ -68,7 +68,7 @@ export class ProductApi extends BaseApi {
               break;
             case FilterTypes.BOOLEAN:
               filterQuery.push(
-                `${filter.identifier}:${(filter as TermFilter).terms[0].toString().toLowerCase() === 'true'}`,
+                `${filter.identifier}:${(filter as TermFilter).terms[0]?.toString().toLowerCase() === 'true'}`,
               );
               break;
             case FilterTypes.RANGE:
