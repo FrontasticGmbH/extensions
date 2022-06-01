@@ -77,22 +77,14 @@ export default {
       });
     }
 
-    const cartUrlMatches = getPath(request)?.match(/^\/cart/);
-    if (cartUrlMatches) {
+    const staticPageMatch = getPath(request)?.match(/^\/(cart|checkout|wishlist|account|login|register|thank-you)/);
+    if (staticPageMatch) {
       return {
-        dynamicPageType: 'frontastic-test/cart',
-        dataSourcePayload: {
-          cart: {
-            sum: 12340,
-          },
-        },
-        pageMatchingPayload: {
-          cart: {
-            sum: 12340,
-          },
-        },
+        dynamicPageType: `frontastic${staticPageMatch[0]}`,
+        dataSourcePayload: {},
+        pageMatchingPayload: {},
       };
-    }
+    }    
 
     if (CategoryRouter.identifyFrom(request)) {
       return CategoryRouter.loadFor(request, context.frontasticContext).then((result: Result) => {
@@ -159,6 +151,17 @@ export default {
       const productQuery = ProductQueryFactory.queryFromParams(context?.request, config);
 
       return await productApi.query(productQuery).then((queryResult) => {
+        return {
+          dataSourcePayload: queryResult,
+        };
+      });
+    },
+    'frontastic/product': async (config: DataSourceConfiguration, context: DataSourceContext) => {
+      const productApi = new ProductApi(context.frontasticContext, context.request ? getLocale(context.request) : null);
+      
+      const productQuery = ProductQueryFactory.queryFromParams(context?.request, config);
+
+      return await productApi.getProduct(productQuery).then((queryResult) => {
         return {
           dataSourcePayload: queryResult,
         };
