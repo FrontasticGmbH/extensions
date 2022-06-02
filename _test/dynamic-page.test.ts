@@ -9,7 +9,7 @@ test('lists fild with defined ID', async () => {
   );
 
   expect(response).toStrictEqual({
-    dynamicPageType: 'frontastic-test/cart',
+    dynamicPageType: 'frontastic/cart',
     dataSourcePayload: { cart: { sum: 12340 } },
     pageMatchingPayload: { cart: { sum: 12340 } },
   });

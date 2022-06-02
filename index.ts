@@ -166,6 +166,9 @@ export default {
       });
     },
 
+    // **************************
+    // Commercetools integration
+    // **************************
     'frontastic/product': async (config: DataSourceConfiguration, context: DataSourceContext) => {
       const productApi = new ProductApi(context.frontasticContext, context.request ? getLocale(context.request) : null);
       
