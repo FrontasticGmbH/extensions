@@ -79,10 +79,19 @@ export default {
 
     const staticPageMatch = getPath(request)?.match(/^\/(cart|checkout|wishlist|account|login|register|thank-you)/);
     if (staticPageMatch) {
+
       return {
         dynamicPageType: `frontastic${staticPageMatch[0]}`,
-        dataSourcePayload: {},
-        pageMatchingPayload: {},
+        dataSourcePayload: {
+          cart: {
+            sum: 12340,
+          }
+        },
+        pageMatchingPayload: {
+          cart: {
+            sum: 12340,
+          }
+        },
       };
     }    
 
@@ -156,6 +165,7 @@ export default {
         };
       });
     },
+
     'frontastic/product': async (config: DataSourceConfiguration, context: DataSourceContext) => {
       const productApi = new ProductApi(context.frontasticContext, context.request ? getLocale(context.request) : null);
       
@@ -166,6 +176,12 @@ export default {
           dataSourcePayload: queryResult,
         };
       });
+    },
+
+    'frontastic/empty': () => {
+      return {
+        dataSourcePayload: {}
+      }
     },
 
     // **************************

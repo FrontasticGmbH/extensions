@@ -1,8 +1,8 @@
 {
-  "dynamicPageType": "frontastic/account/thank-you",
+  "dynamicPageType": "frontastic/thank-you",
   "name": "Thank you",
   "category": "Account",
   "icon": "check_circle_outline",
-  "dataSourceType": "frontastic/product-list",
+  "dataSourceType": "frontastic/empty",
   "isMultiple": true
 }
