@@ -79,7 +79,6 @@ export default {
 
     const staticPageMatch = getPath(request)?.match(/^\/(cart|checkout|wishlist|account|login|register|thank-you)/);
     if (staticPageMatch) {
-
       return {
         dynamicPageType: `frontastic${staticPageMatch[0]}`,
         dataSourcePayload: {
@@ -176,7 +175,9 @@ export default {
 
       return await productApi.getProduct(productQuery).then((queryResult) => {
         return {
-          dataSourcePayload: queryResult,
+          dataSourcePayload: {
+            product: queryResult
+          }
         };
       });
     },
