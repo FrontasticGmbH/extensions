@@ -36,6 +36,24 @@ export default {
     request: Request,
     context: DynamicPageContext,
   ): Promise<DynamicPageSuccessResult | DynamicPageRedirectResult | null> => {
+
+    const staticPageMatch = getPath(request)?.match(/^\/(cart|checkout|wishlist|account|login|register|thank-you)/);
+    if (staticPageMatch) {
+      return {
+        dynamicPageType: `frontastic${staticPageMatch[0]}`,
+        dataSourcePayload: {
+          cart: {
+            sum: 12340,
+          }
+        },
+        pageMatchingPayload: {
+          cart: {
+            sum: 12340,
+          }
+        },
+      };
+    }  
+
     // **************************
     // Commercetools integration
     // **************************
@@ -77,36 +95,21 @@ export default {
       });
     }
 
-    const staticPageMatch = getPath(request)?.match(/^\/(cart|checkout|wishlist|account|login|register|thank-you)/);
-    if (staticPageMatch) {
-      return {
-        dynamicPageType: `frontastic${staticPageMatch[0]}`,
-        dataSourcePayload: {
-          cart: {
-            sum: 12340,
-          }
-        },
-        pageMatchingPayload: {
-          cart: {
-            sum: 12340,
-          }
-        },
-      };
-    }    
-
     if (CategoryRouter.identifyFrom(request)) {
       return CategoryRouter.loadFor(request, context.frontasticContext).then((result: Result) => {
         if (result) {
           return {
             dynamicPageType: 'frontastic/category',
             dataSourcePayload: {
-              products: result.items,
+              items: result.items,
+              facets: result.facets,
               previousCursor: result.previousCursor,
               nextCursor: result.nextCursor,
-              category: getPath(request),
+              category: getPath(request),              
             },
             pageMatchingPayload: {
-              products: result.items,
+              items: result.items,
+              facets: result.facets,
               previousCursor: result.previousCursor,
               nextCursor: result.nextCursor,
               category: getPath(request),
